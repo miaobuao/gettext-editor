@@ -1,0 +1,27 @@
+{
+  "name": "gettext-editor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:nuxt": "nuxt build",
+    "dev:nuxt": "nuxt dev",
+    "dev": "pnpm tauri dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "icon": "pnpm tauri icon ./icon.png "
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@tauri-apps/cli": "^1.5.6",
+    "nuxt": "^3.8.2",
+    "vite-plugin-vuetify": "^1.0.2",
+    "vue": "^3.3.8",
+    "vue-router": "^4.2.5",
+    "vuetify": "^3.4.2"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.3.67",
+    "@tauri-apps/api": "^1.5.1"
+  }
+}
