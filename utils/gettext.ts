@@ -1,9 +1,14 @@
 /**
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
-import { uniqueId } from 'lodash';
+import { isNil, uniqueId } from 'lodash';
 
 export const DEFAULT_CONTEXT = 'default';
+
+export interface POTemplate {
+  msg: Msg[];
+  id: Record<string, MsgId>;
+}
 
 export interface MsgId {
   context: string;
@@ -29,7 +34,7 @@ const MsgidParts = /^msgid "(.*)"$/;
 const MsgstrParts = /^msgstr "(.*)"$/;
 const MsgidPluralParts = /^msgid_plural "(.*)"$/;
 
-export function gettextMsgsParser(text: string) {
+export function gettextMsgsParser(text: string): POTemplate | undefined {
   if (!checkPoText(text)) {
     return;
   }
@@ -37,8 +42,11 @@ export function gettextMsgsParser(text: string) {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
-  const msgs: Msg[] = [];
-  const ids: Record<string, Record<string, string>> = {};
+  const template: POTemplate = {
+    msg: [],
+    id: {},
+  };
+  const id_record: Record<string, Record<string, string>> = {};
   for (let i = 0; i < lines.length; ++i) {
     const flags = new Set<string>();
     const reference: string[] = [];
@@ -87,14 +95,17 @@ export function gettextMsgsParser(text: string) {
     }
     if (msgid === undefined || msgstr === undefined) return;
     let id = uniqueId();
-    if (ids[msgid.context] === undefined) {
-      ids[msgid.context] = {
+    if (id_record[msgid.context] === undefined) {
+      id_record[msgid.context] = {
         [msgid.id]: id,
       };
-    } else if (ids[msgid.context][msgid.id] === undefined) {
-      ids[msgid.context][msgid.id] = id;
+    } else if (id_record[msgid.context][msgid.id] === undefined) {
+      id_record[msgid.context][msgid.id] = id;
     } else {
-      id = ids[msgid.context][msgid.id];
+      id = id_record[msgid.context][msgid.id];
+    }
+    if (isNil(template.id[id])) {
+      template.id[id] = msgid;
     }
     const msg: Msg = {
       id,
@@ -107,9 +118,9 @@ export function gettextMsgsParser(text: string) {
       flags,
       modules,
     };
-    msgs.push(msg);
+    template.msg.push(msg);
   }
-  return msgs;
+  return template;
 }
 
 export function checkPoText(text: string) {

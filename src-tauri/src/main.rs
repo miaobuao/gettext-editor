@@ -11,7 +11,7 @@ fn main() {
         None => {}
     }
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_cwd, get_argv])
+        .invoke_handler(tauri::generate_handler![get_input_path, is_dir, get_cwd])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -22,6 +22,20 @@ fn get_cwd() -> String {
 }
 
 #[tauri::command]
-fn get_argv() -> Vec<String> {
-    env::args().collect::<Vec<String>>()
+fn get_input_path() -> String  {
+    let input = env::args().nth(1);
+    match input {
+        Some(path) => {
+            assert!(Path::new(&path).exists());
+            path
+        },
+        None => {
+            env::current_dir().unwrap().to_str().unwrap().to_string()
+        }
+    }
+}
+
+#[tauri::command]
+fn is_dir(path: &str) -> bool {
+    fs::metadata(path).unwrap().is_dir()
 }

@@ -1,20 +1,9 @@
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify';
+import vuetify from 'vite-plugin-vuetify';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
-  vite: {
-    clearScreen: false,
-    server: {
-      strictPort: true,
-    },
-    vue: {
-      template: {
-        transformAssetUrls,
-      },
-    },
-  },
   build: {
     transpile: ['vuetify'],
   },
@@ -25,5 +14,13 @@ export default defineNuxtConfig({
         config.plugins.push(vuetify({ autoImport: true }));
       });
     },
+    [
+      '@nuxtjs/i18n',
+      {
+        i18n: {
+          vueI18n: './i18n.config.ts', // if you are using custom path, default
+        },
+      },
+    ],
   ],
 });
