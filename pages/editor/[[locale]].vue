@@ -2,5 +2,5 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const locale = route.params.locale;
+const locale = computed(() => route.params.locale);
 </script>

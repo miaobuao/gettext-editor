@@ -22,16 +22,14 @@ fn get_cwd() -> String {
 }
 
 #[tauri::command]
-fn get_input_path() -> String  {
+fn get_input_path() -> Option<String> {
     let input = env::args().nth(1);
     match input {
         Some(path) => {
             assert!(Path::new(&path).exists());
-            path
-        },
-        None => {
-            env::current_dir().unwrap().to_str().unwrap().to_string()
+            Some(path)
         }
+        None => None,
     }
 }
 

@@ -29,6 +29,9 @@
         "exit": true,
         "relaunch": false,
         "relaunchDangerousAllowSymlinkMacos": false
+      },
+      "window": {
+        "all": true
       }
     },
     "bundle": {
@@ -76,7 +79,8 @@
         "height": 600,
         "resizable": true,
         "title": "Gettext Editor",
-        "width": 800
+        "width": 800,
+        "decorations": true
       }
     ]
   }

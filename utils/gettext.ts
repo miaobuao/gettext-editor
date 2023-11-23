@@ -2,7 +2,7 @@
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
 import { clone, isNil, uniqueId } from 'lodash';
-import { basename, extname } from 'path-browserify';
+import { basename, dirname, extname, relative } from 'path-browserify';
 
 export const DEFAULT_CONTEXT = 'default';
 
@@ -33,9 +33,18 @@ export interface MsgComment {
 
 export class Gettext {
   constructor(
+    readonly path: string,
     readonly template: POTemplate,
     readonly locales: Map<string, Locale> = new Map()
   ) {}
+
+  get basePath() {
+    return dirname(this.path);
+  }
+
+  relativePath(path: string) {
+    return relative(this.basePath, path);
+  }
 
   /**
    * This method will return UUID of the message if found,
@@ -68,9 +77,6 @@ export class Gettext {
 
   importLocaleFromString(path: string, text: string) {
     const res = gettextMsgsParser(text);
-    if (isNil(res)) {
-      return;
-    }
     const uuidMap: Record<string, Record<string, string>> = {};
     for (const [uuid, { context, id }] of res.id) {
       if (uuidMap[context]) {
@@ -90,7 +96,7 @@ export class Gettext {
     }
     const code = basename(path, extname(path));
     const locale = {
-      path: code,
+      path,
       code,
       msgs: res.msg,
     };
@@ -98,12 +104,9 @@ export class Gettext {
     return locale;
   }
 
-  public static parse(text: string) {
+  public static parse({ path, text }: { path: string; text: string }) {
     const res = gettextMsgsParser(text);
-    if (isNil(res)) {
-      return;
-    }
-    return new Gettext(res);
+    return new Gettext(path, res);
   }
 
   get modules() {
@@ -115,9 +118,9 @@ const MsgidParts = /^msgid "(.*)"$/;
 const MsgstrParts = /^msgstr "(.*)"$/;
 const MsgidPluralParts = /^msgid_plural "(.*)"$/;
 
-export function gettextMsgsParser(text: string): POTemplate | undefined {
+export function gettextMsgsParser(text: string): POTemplate {
   if (!checkPoText(text)) {
-    return;
+    throw new Error('error.invalid_po_file');
   }
   const lines = text
     .split('\n')
@@ -159,7 +162,7 @@ export function gettextMsgsParser(text: string): POTemplate | undefined {
           };
           msgstr = MsgstrParts.exec(lines[++i])![1];
         } else {
-          return;
+          throw new Error('error.invalid_po_file');
         }
         while (
           i < lines.length - 1 &&
@@ -170,11 +173,13 @@ export function gettextMsgsParser(text: string): POTemplate | undefined {
         }
         break;
       } else {
-        return;
+        throw new Error('error.invalid_po_file');
       }
       ++i;
     }
-    if (msgid === undefined || msgstr === undefined) return;
+    if (msgid === undefined || msgstr === undefined) {
+      throw new Error('error.invalid_po_file');
+    }
     let id = uniqueId();
     if (id_record[msgid.context] === undefined) {
       id_record[msgid.context] = {

@@ -1,74 +1,95 @@
 <template>
-  <v-navigation-drawer permanent :width="150">
-    <v-list-item :title="project?.name">
-      <template #append>
-        <v-menu>
-          <template v-slot:activator="{ props: menu }">
-            <v-btn
-              density="compact"
-              size="small"
-              icon="mdi-plus"
-              flat
-              v-bind="menu"
-            >
-            </v-btn>
-          </template>
+  <v-app-bar>
+    <template v-slot:prepend>
+      <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
+    </template>
 
-          <v-list>
-            <v-list-item
-              v-for="option in createMenuOptions"
-              :key="option.title"
-              @click="option.action"
-            >
-              <v-list-item-title>
-                {{ option.title }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+    <v-app-bar-title>
+      {{ project.name }}
+    </v-app-bar-title>
 
-        <v-btn
-          density="compact"
-          size="small"
-          icon="mdi-cog-outline"
-          flat
-          @click="linkToSettings"
-        >
-        </v-btn>
+    <v-spacer></v-spacer>
+
+    <v-menu>
+      <template v-slot:activator="{ props: menu }">
+        <v-btn icon="mdi-plus" flat v-bind="menu"> </v-btn>
       </template>
-    </v-list-item>
 
-    <v-divider></v-divider>
+      <v-list>
+        <v-list-item
+          v-for="option in createMenuOptions"
+          :key="option.title"
+          @click="option.action"
+        >
+          <v-list-item-title>
+            {{ option.title }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
-    <v-list density="compact" nav>
-      <v-list-item
-        v-for="[code, locale] in locales"
-        prepend-icon="mdi-translate"
-        :title="code"
-        :value="code"
-        @click="linkToLocaleEditor(code)"
-      ></v-list-item>
-    </v-list>
-  </v-navigation-drawer>
+    <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
+  </v-app-bar>
 
   <v-main>
-    <router-view></router-view>
+    <v-navigation-drawer
+      location="right"
+      :width="400"
+      v-if="!hiddenErrors && errors.length"
+    >
+      <v-alert
+        type="error"
+        v-for="(err, idx) in errors.toReversed()"
+        closable
+        :key="err.id"
+        @click:close="eraseError(err.id)"
+        :title="err.title"
+        :text="err.message"
+      ></v-alert>
+    </v-navigation-drawer>
+
+    <v-navigation-drawer permanent :width="200">
+      <v-divider></v-divider>
+
+      <v-list density="compact" nav>
+        <v-list-item
+          v-for="[code, locale] in locales"
+          prepend-icon="mdi-translate"
+          :title="code"
+          :value="code"
+          @click="linkToLocaleEditor(code)"
+        ></v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-main>
+      <router-view></router-view>
+    </v-main>
   </v-main>
 </template>
 
 <script setup lang="ts">
-import { fs, dialog } from '@tauri-apps/api';
-import { isNil } from 'lodash';
-import { dirname, basename, extname, join } from 'path-browserify';
+import { fs } from '@tauri-apps/api';
+import { isNil, uniqueId } from 'lodash';
+import { dirname, basename, join } from 'path-browserify';
 
+interface ErrorMessage {
+  id: string;
+  title: string;
+  message: string;
+}
 const { t: $t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
+const hiddenErrors = ref(false);
 const loading = ref(false);
 const project = useProject();
 const gettext = useGettext();
-const locales = useLocales();
+const locales = computed(() => {
+  return gettext.value.locales;
+});
+const errors = ref<ErrorMessage[]>([]);
 
 const createMenuOptions = [
   {
@@ -93,23 +114,69 @@ watch(
   }
 );
 
+function eraseError(id: string) {
+  errors.value = errors.value.filter((err) => err.id !== id);
+  console.log(errors.value.length);
+}
+
 async function addLocaleFromTemplate() {}
 async function addLocaleFromFile() {
-  const target = await selectSingleFile();
-  if (isNil(target) || !(await fs.exists(target))) {
+  const files = await selectFiles();
+  if (isNil(files)) {
     return;
   }
-  const text = await fs.readTextFile(target);
-  const locale = gettext.value?.importLocaleFromString(target, text);
-  if (isNil(locale)) {
-    // TODO: show error
+  const candidates: string[] = [];
+  for (const file of files) {
+    if (await fs.exists(file)) {
+      if (await isDir(file)) {
+        const entires = await fs
+          .readDir(file)
+          .then((files) =>
+            files
+              .map((file) => file.name)
+              .filter(
+                (file) =>
+                  !isNil(file) &&
+                  (file?.endsWith('.pot') || file?.endsWith('.po'))
+              )
+          );
+        candidates.push(...(entires as string[]));
+      } else {
+        candidates.push(file);
+      }
+    } else {
+      errors.value.push({
+        id: uniqueId(),
+        title: $t('error.failed_to_import_locale'),
+        message: $t('error.file_not_found', { path: file }),
+      });
+    }
   }
+  // TODO: deduplicate same locales code
+  candidates.forEach(async (path) => {
+    const text = await fs.readTextFile(path);
+    try {
+      gettext.value?.importLocaleFromString(path, text);
+    } catch (error) {
+      const msg = (error as Error).message;
+      if (msg === 'error.invalid_po_file') {
+        errors.value.push({
+          id: uniqueId(),
+          title: $t('error.failed_to_import_locale'),
+          message: $t('error.invalid_po_file', {
+            path,
+          }),
+        });
+      }
+    }
+  });
+  console.log(gettext.value);
 }
 
 async function loadPot(path: string) {
   loading.value = true;
   const text = await fs.readTextFile(path);
-  if ((gettext.value = Gettext.parse(text))) {
+  if ((gettext.value = Gettext.parse({ path, text }))) {
     project.value = {
       name: basename(path),
       path,
