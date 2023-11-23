@@ -1,12 +1,6 @@
-import type { Msg, POTemplate } from '~/utils/gettext.ts';
+import type { Gettext, Msg } from '~/utils/gettext.ts';
 
-export const usePOTemplate = () =>
-  useState<POTemplate>('template', () => {
-    return {
-      msg: [],
-      id: {},
-    };
-  });
+export const useGettext = () => useState<Gettext | void>('gettext', () => {});
 
 export const useProject = () =>
   useState('project', () => {
@@ -17,7 +11,7 @@ export const useProject = () =>
   });
 
 export const useLocales = () =>
-  useState<Record<string, Locale>>('locales', () => ({}));
+  useState<Map<string, Locale>>('locales', () => new Map());
 
 export interface Locale {
   path: string;

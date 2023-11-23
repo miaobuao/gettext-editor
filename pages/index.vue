@@ -13,32 +13,24 @@ invoke<string>('get_input_path').then(async (path) => {
       if (entires.length === 1) {
         routerToEditor(entires[0].path);
       } else {
-        selectFile(path);
+        const file = await selectSingleFile(path);
+        if (file) routerToEditor(file);
       }
     } else {
       routerToEditor(path);
       return;
     }
   } else {
-    selectFile();
+    const file = await selectSingleFile();
+    if (file) routerToEditor(file);
   }
 });
-
-async function selectFile(path?: string) {
-  path = path ?? (await invoke('get_cwd'));
-  const potPath = await dialog.open({
-    defaultPath: path,
-    directory: false,
-  });
-  if (isNil(potPath)) {
-    await process.exit(1);
-  }
-  routerToEditor(potPath as string);
-}
 
 const router = useRouter();
 function routerToEditor(path: string) {
   if (!path.endsWith('.pot')) return;
+  console.log('goto');
+
   router.push({
     name: 'editor',
     query: {
