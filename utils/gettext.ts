@@ -1,9 +1,18 @@
 /**
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
+import { uniqueId } from 'lodash';
+
+export const DEFAULT_CONTEXT = 'default';
+
+export interface MsgId {
+  context: string;
+  id: string;
+  plural?: string;
+}
 
 export interface Msg {
-  id: string;
+  id: string; // uuid of msgid
   str: string;
   comment: MsgComment;
   reference: string[]; // #:
@@ -29,16 +38,18 @@ export function gettextMsgsParser(text: string) {
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
   const msgs: Msg[] = [];
+  const ids: Record<string, Record<string, string>> = {};
   for (let i = 0; i < lines.length; ++i) {
     const flags = new Set<string>();
     const reference: string[] = [];
     const translator: string[] = [];
     const extracted: string[] = [];
     const modules: string[] = [];
-    let msgstr = '';
-    let msgid = '';
+    let msgid: MsgId | undefined;
+    let msgstr: string | undefined;
+    let context: string | undefined;
 
-    while (true) {
+    while (i < lines.length) {
       const line = lines[i];
       if (line.startsWith('#,')) {
         flags.add(line.substring(2).trim());
@@ -51,8 +62,16 @@ export function gettextMsgsParser(text: string) {
       } else if (line.startsWith('#')) {
         translator.push(line.substring(1).trim());
       } else if (MsgidParts.test(line) && MsgstrParts.test(lines[i + 1])) {
-        msgid = MsgidParts.exec(line)![1];
-        msgstr = MsgstrParts.exec(lines[++i])![1];
+        if (msgid === undefined && msgstr === undefined) {
+          msgid = {
+            id: MsgidParts.exec(line)![1],
+            context: DEFAULT_CONTEXT,
+            plural: undefined, // TODO: handle plural
+          };
+          msgstr = MsgstrParts.exec(lines[++i])![1];
+        } else {
+          return;
+        }
         while (
           i < lines.length - 1 &&
           lines[i + 1].startsWith('"') &&
@@ -66,8 +85,19 @@ export function gettextMsgsParser(text: string) {
       }
       ++i;
     }
+    if (msgid === undefined || msgstr === undefined) return;
+    let id = uniqueId();
+    if (ids[msgid.context] === undefined) {
+      ids[msgid.context] = {
+        [msgid.id]: id,
+      };
+    } else if (ids[msgid.context][msgid.id] === undefined) {
+      ids[msgid.context][msgid.id] = id;
+    } else {
+      id = ids[msgid.context][msgid.id];
+    }
     const msg: Msg = {
-      id: msgid,
+      id,
       str: msgstr,
       comment: {
         translator,

@@ -20,6 +20,7 @@
 <script setup lang="ts">
 import { dirname, basename, extname } from 'path-browserify';
 import { invoke, fs } from '@tauri-apps/api';
+import type { Project } from '~/utils/langs';
 
 const project = ref<Project>();
 
