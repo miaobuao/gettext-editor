@@ -31,47 +31,51 @@
     <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
   </v-app-bar>
 
+  <v-navigation-drawer
+    location="right"
+    :width="400"
+    v-if="!hiddenErrors && errors.length"
+  >
+    <v-alert
+      type="error"
+      v-for="(err, idx) in errors.toReversed()"
+      closable
+      :key="err.id"
+      @click:close="eraseError(err.id)"
+      :title="err.title"
+      :text="err.message"
+    ></v-alert>
+  </v-navigation-drawer>
+
+  <v-navigation-drawer permanent :width="200">
+    <v-divider></v-divider>
+
+    <v-list density="compact" nav>
+      <v-list-item
+        v-for="[code, locale] in locales"
+        prepend-icon="mdi-translate"
+        :title="code"
+        :value="code"
+        @click="linkToLocaleEditor(code)"
+      ></v-list-item>
+    </v-list>
+  </v-navigation-drawer>
+
   <v-main>
-    <v-navigation-drawer
-      location="right"
-      :width="400"
-      v-if="!hiddenErrors && errors.length"
-    >
-      <v-alert
-        type="error"
-        v-for="(err, idx) in errors.toReversed()"
-        closable
-        :key="err.id"
-        @click:close="eraseError(err.id)"
-        :title="err.title"
-        :text="err.message"
-      ></v-alert>
-    </v-navigation-drawer>
-
-    <v-navigation-drawer permanent :width="200">
-      <v-divider></v-divider>
-
-      <v-list density="compact" nav>
-        <v-list-item
-          v-for="[code, locale] in locales"
-          prepend-icon="mdi-translate"
-          :title="code"
-          :value="code"
-          @click="linkToLocaleEditor(code)"
-        ></v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-
-    <v-main>
-      <router-view></router-view>
-    </v-main>
+    <router-view></router-view>
   </v-main>
+
+  <locale-creator
+    v-model:dialog="showLocaleCreator"
+    @submit="createLocale"
+  ></locale-creator>
 </template>
 
 <script setup lang="ts">
 import { fs } from '@tauri-apps/api';
 import { isNil, uniqueId } from 'lodash';
 import { dirname, basename, join } from 'path-browserify';
+import type { CreateLocaleForm } from '~/components/LocaleCreator.vue';
 
 interface ErrorMessage {
   id: string;
@@ -82,6 +86,7 @@ const { t: $t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
+const showLocaleCreator = ref(false);
 const hiddenErrors = ref(false);
 const loading = ref(false);
 const project = useProject();
@@ -94,7 +99,9 @@ const errors = ref<ErrorMessage[]>([]);
 const createMenuOptions = [
   {
     title: $t('action.add_locale.create_from_template'),
-    action: addLocaleFromTemplate,
+    action: () => {
+      showLocaleCreator.value = true;
+    },
   },
   {
     title: $t('action.add_locale.import_from_file'),
@@ -119,7 +126,15 @@ function eraseError(id: string) {
   console.log(errors.value.length);
 }
 
-async function addLocaleFromTemplate() {}
+function createLocale(form: CreateLocaleForm) {
+  const { code, path } = form;
+  if (isNil(code) || isNil(path)) {
+    return;
+  }
+  gettext.value.createLocale(path, code);
+  showLocaleCreator.value = false;
+}
+
 async function addLocaleFromFile() {
   const files = await selectFiles();
   if (isNil(files)) {
@@ -148,7 +163,7 @@ async function addLocaleFromFile() {
       errors.value.push({
         id: uniqueId(),
         title: $t('error.failed_to_import_locale'),
-        message: $t('error.file_not_found', { path: file }),
+        message: $t('error.file_not_found_', { path: file }),
       });
     }
   }

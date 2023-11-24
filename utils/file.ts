@@ -30,3 +30,13 @@ export async function selectFiles({
   });
   return files as string[] | undefined;
 }
+
+export async function selectSingleDir(defaultPath?: string) {
+  defaultPath = defaultPath ?? (await getCwd());
+  const dir = await dialog.open({
+    defaultPath,
+    directory: true,
+    multiple: false,
+  });
+  return dir as string | undefined;
+}

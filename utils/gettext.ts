@@ -66,11 +66,7 @@ export class Gettext {
   }
 
   createLocale(path: string, code: string) {
-    const locale = {
-      path,
-      code,
-      msgs: [],
-    };
+    const locale = localeInit(path, code);
     this.locales.set(code, locale);
     return locale;
   }
@@ -224,4 +220,24 @@ export function checkPoText(text: string) {
     }
   }
   return true;
+}
+
+export function localeInit(path: string, code: string): Locale {
+  return {
+    path,
+    code,
+    msgs: [
+      {
+        id: '',
+        str: '',
+        comment: {
+          translator: [],
+          extracted: [],
+        },
+        reference: [],
+        flags: new Set<string>(),
+        modules: [],
+      },
+    ],
+  };
 }
