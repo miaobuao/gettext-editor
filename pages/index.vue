@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { invoke, fs } from '@tauri-apps/api';
+import { isNil } from 'lodash';
 
 const { t: $t } = useI18n();
 const firstOpen = useState('firstOpen', () => true);
@@ -76,7 +77,9 @@ function openFromEnv() {
 }
 const router = useRouter();
 function routerToEditor(path: string) {
-  if (!path.endsWith('.pot')) return;
+  if (isNil(path) || path.length === 0) {
+    return;
+  }
   router.push({
     name: 'editor',
     query: {

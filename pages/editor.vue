@@ -235,7 +235,7 @@ async function loadPot(path: string) {
 }
 
 function linkToSettings() {
-  const tgt = 'editor';
+  const tgt = 'editor-settings';
   if (route.name === tgt) return;
   router.replace({
     name: tgt,

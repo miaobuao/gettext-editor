@@ -1,7 +1,7 @@
 /**
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
-import { clone, isNil, uniqueId } from 'lodash';
+import { isNil, uniqueId } from 'lodash';
 import {
   basename,
   dirname,
