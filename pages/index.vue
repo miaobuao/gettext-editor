@@ -77,8 +77,6 @@ function openFromEnv() {
 const router = useRouter();
 function routerToEditor(path: string) {
   if (!path.endsWith('.pot')) return;
-  console.log('goto');
-
   router.push({
     name: 'editor',
     query: {

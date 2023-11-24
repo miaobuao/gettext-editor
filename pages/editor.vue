@@ -76,6 +76,7 @@ import { fs } from '@tauri-apps/api';
 import { isNil, uniqueId } from 'lodash';
 import { dirname, basename, join } from 'path-browserify';
 import type { CreateLocaleForm } from '~/components/LocaleCreator.vue';
+import { onKeyStroke } from '@vueuse/core';
 
 interface ErrorMessage {
   id: string;
@@ -121,9 +122,21 @@ watch(
   }
 );
 
+onKeyStroke(
+  ['s'],
+  (e) => {
+    if (!e.ctrlKey) {
+      return;
+    }
+    const dump = gettext.value.dump();
+  },
+  {
+    dedupe: true,
+  }
+);
+
 function eraseError(id: string) {
   errors.value = errors.value.filter((err) => err.id !== id);
-  console.log(errors.value.length);
 }
 
 function createLocale(form: CreateLocaleForm) {
@@ -185,7 +198,6 @@ async function addLocaleFromFile() {
       }
     }
   });
-  console.log(gettext.value);
 }
 
 async function loadPot(path: string) {
@@ -200,7 +212,6 @@ async function loadPot(path: string) {
   Promise.all(
     // read all modules
     gettext.value?.modules.map(async (module) => {
-      module = join(dirname(path), module);
       if (!(await fs.exists(module))) {
         return;
       }

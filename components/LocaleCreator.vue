@@ -85,9 +85,16 @@ const code = ref('');
 const dir = ref('');
 const form = ref();
 
-getCwd().then((path) => {
-  dir.value = path;
-});
+watch(
+  () => props.dialog,
+  (value) => {
+    if (value) {
+      getCwd().then((path) => {
+        dir.value = path;
+      });
+    }
+  }
+);
 
 async function submit() {
   if (form.value) {
