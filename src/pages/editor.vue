@@ -74,9 +74,14 @@
 <script setup lang="ts">
 import { fs } from '@tauri-apps/api';
 import { isNil, uniqueId } from 'lodash';
-import { dirname, basename, join } from 'path-browserify';
-import type { CreateLocaleForm } from '~/components/LocaleCreator.vue';
+import { basename } from 'path-browserify';
+import { selectFiles } from '../utils/file';
+import { isDir } from '../utils/invoke';
+import { Gettext } from '../utils/gettext';
+import type { CreateLocaleForm } from '../components/LocaleCreator.vue';
 import { onKeyStroke } from '@vueuse/core';
+import useGettext from '../stores/gettext';
+import useProject from '../stores/project';
 
 interface ErrorMessage {
   id: string;
@@ -204,10 +209,8 @@ async function loadPot(path: string) {
   loading.value = true;
   const text = await fs.readTextFile(path);
   if ((gettext.value = Gettext.parse({ path, text }))) {
-    project.value = {
-      name: basename(path),
-      path,
-    };
+    project.name = basename(path);
+    project.path = path;
   }
   Promise.all(
     // read all modules
@@ -243,6 +246,8 @@ function linkToSettings() {
 }
 
 function linkToLocaleEditor(locale: string) {
+  console.log({ locale });
+
   return router.replace({
     name: 'editor-locale',
     params: {
@@ -251,3 +256,22 @@ function linkToLocaleEditor(locale: string) {
   });
 }
 </script>
+
+<style lang="scss">
+.fullscreen {
+  height: 100%;
+}
+html,
+body {
+  height: 100%;
+}
+#app {
+  height: 100vh;
+  > div {
+    height: 100%;
+    > div {
+      height: 100%;
+    }
+  }
+}
+</style>

@@ -22,11 +22,16 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { invoke, fs } from '@tauri-apps/api';
 import { isNil } from 'lodash';
+import { getCwd } from '../utils/invoke';
+import { selectSingleFile } from '../utils/file';
+import useProject from '../stores/project';
 
 const { t: $t } = useI18n();
-const firstOpen = useState('firstOpen', () => true);
+// const firstOpen = useState('firstOpen', () => true);
+const project = useProject();
 
 const openMethods = [
   {
@@ -46,8 +51,8 @@ const openMethods = [
   },
 ];
 
-if (firstOpen.value) {
-  firstOpen.value = false;
+if (project.firstOpen) {
+  project.firstOpen = false;
   openFromEnv();
 }
 

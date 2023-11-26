@@ -94,12 +94,19 @@ const zh: LocaleStruct = {
   },
 };
 
-export default defineI18nConfig(() => ({
+import { createI18n } from 'vue-i18n';
+
+const i18n = createI18n({
   legacy: false,
   locale: 'en',
-  globalInjection: true,
+  fallbackLocale: 'en',
   messages: {
-    zh,
-    en,
+    en: { ...en },
+    zh: zh,
   },
-}));
+});
+
+export { i18n };
+
+const locale = i18n.global;
+export default locale;
