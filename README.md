@@ -3,6 +3,6 @@
 ## dev
 
 ```bash
-npm run icon
-npm run dev
+pnpm run icon
+pnpm run dev
 ```

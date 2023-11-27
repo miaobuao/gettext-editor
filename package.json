@@ -1,33 +1,44 @@
 {
   "name": "gettext-editor",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build:nuxt": "nuxt build",
-    "dev:nuxt": "nuxt dev",
+    "dev:vite": "vite",
+    "build:vite": "vue-tsc && vite build",
+    "preview": "vite preview",
     "dev": "pnpm tauri dev",
-    "generate": "nuxt generate",
-    "postinstall": "nuxt prepare",
+    "build": "pnpm tauri build",
     "icon": "pnpm tauri icon ./icon.png "
-  },
-  "devDependencies": {
-    "@nuxt/devtools": "latest",
-    "@nuxtjs/i18n": "8.0.0-rc.5",
-    "@tauri-apps/cli": "^1.5.6",
-    "@types/lodash": "^4.14.202",
-    "@types/path-browserify": "^1.0.2",
-    "nuxt": "^3.8.2",
-    "vite-plugin-vuetify": "^1.0.2",
-    "vue": "^3.3.8",
-    "vue-router": "^4.2.5",
-    "vuetify": "^3.4.2"
   },
   "dependencies": {
     "@mdi/font": "^7.3.67",
     "@tauri-apps/api": "^1.5.1",
     "@vueuse/core": "^10.6.1",
-    "lodash": "^4.17.21",
     "path-browserify": "^1.0.1",
-    "pinia": "^2.1.7"
+    "pinia": "^2.1.7",
+    "vue": "^3.3.8",
+    "vue-i18n": "9",
+    "vue-router": "4",
+    "vuetify": "^3.4.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.6",
+    "@types/lodash-es": "^4.17.12",
+    "@types/path-browserify": "^1.0.2",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "autoprefixer": "^10.4.16",
+    "lodash-es": "^4.17.21",
+    "naive-ui": "^2.35.0",
+    "postcss": "^8.4.31",
+    "sass": "^1.69.5",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "unplugin-auto-import": "^0.17.1",
+    "unplugin-vue-components": "^0.25.2",
+    "vfonts": "^0.0.3",
+    "vite": "^5.0.0",
+    "vite-plugin-vuetify": "^1.0.2",
+    "vue-tsc": "^1.8.22"
   }
 }

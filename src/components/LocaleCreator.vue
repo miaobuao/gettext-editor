@@ -52,6 +52,10 @@
 import { fs } from '@tauri-apps/api';
 import { useVModel } from '@vueuse/core';
 import { join } from 'path-browserify';
+import { useI18n } from 'vue-i18n';
+import useGettext from '../stores/gettext';
+import { getCwd, isDir } from '../utils/invoke';
+import { selectSingleDir } from '../utils/file';
 
 export interface CreateLocaleForm {
   code: string;

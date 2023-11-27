@@ -1,4 +1,5 @@
-import { invoke, dialog } from '@tauri-apps/api';
+import { dialog } from '@tauri-apps/api';
+import { getCwd } from './invoke';
 
 interface OpenDialogOptions {
   defaultPath?: string;

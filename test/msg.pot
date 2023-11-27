@@ -1,8 +1,14 @@
 # TESTING FOR GETTEXT EDITOR
-#
+# 
+#- En.po
+#- ../src-tauri/zh.po
 #, fuzzy
 msgid ""
 msgstr ""
+""
+""
+""
+""
 "Project-Id-Version: Crazy Rubbish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"

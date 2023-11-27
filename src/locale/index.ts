@@ -6,6 +6,7 @@ interface LocaleStruct {
     };
     open_from_file: string;
     open_from_env: string;
+    save_all: string;
   };
   error: {
     locale_already_exists: string;
@@ -27,6 +28,7 @@ interface LocaleStruct {
     ok: string;
     locale: string;
     path: string;
+    undo: string;
   };
 }
 
@@ -36,6 +38,7 @@ const en: LocaleStruct = {
       import_from_file: 'Import from file',
       create_from_template: 'Create from template',
     },
+    save_all: 'Save all',
     open_from_file: 'Open from file',
     open_from_env: 'Open from env',
   },
@@ -59,6 +62,7 @@ const en: LocaleStruct = {
     ok: 'OK',
     locale: 'Locale',
     path: 'Path',
+    undo: 'Undo',
   },
 };
 
@@ -68,6 +72,7 @@ const zh: LocaleStruct = {
       import_from_file: '从文件导入',
       create_from_template: '从模板创建',
     },
+    save_all: '保存所有更改',
     open_from_file: '从文件打开',
     open_from_env: '从环境变量打开',
   },
@@ -91,15 +96,23 @@ const zh: LocaleStruct = {
     ok: '确定',
     locale: '语言',
     path: '路径',
+    undo: '撤销',
   },
 };
 
-export default defineI18nConfig(() => ({
+import { createI18n } from 'vue-i18n';
+
+const i18n = createI18n({
   legacy: false,
   locale: 'en',
-  globalInjection: true,
+  fallbackLocale: 'en',
   messages: {
-    zh,
-    en,
+    en: { ...en },
+    zh: zh,
   },
-}));
+});
+
+export { i18n };
+
+const locale = i18n.global;
+export default locale;

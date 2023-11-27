@@ -1,7 +1,7 @@
 /**
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
-import { clone, isNil, uniqueId } from 'lodash';
+import { isNil, uniqueId } from 'lodash-es';
 import {
   basename,
   dirname,
@@ -44,6 +44,12 @@ export interface MsgMetaData {
   modules: Set<string>; // #-
   comment: string[]; // #
   extracted: string[]; // #.
+}
+
+export interface Locale {
+  path: string;
+  code: string;
+  msgs: Msg[];
 }
 
 export class Gettext {
@@ -139,30 +145,51 @@ export class Gettext {
     return new Gettext(path, res);
   }
 
-  dump() {
+  getMsgId(id: string) {
+    return this.template.id.get(id);
+  }
+
+  dumpTemplate() {
+    const absModules = this.meta.modules;
+    let data;
+    try {
+      this.meta.modules = new Set(
+        Array.from(absModules).map((path) => {
+          return this.relativePath(path);
+        })
+      );
+      data = {
+        path: this.path,
+        data: msgsToLines(this.template.id, this.template.msg),
+      };
+    } catch (e) {
+      console.error(e);
+    }
+    this.meta.modules = absModules;
+    return data;
+  }
+
+  dumpLocale(code: string) {
+    const locale = this.locales.get(code);
+    if (!locale) return;
+    const data = msgsToLines(this.template.id, locale.msgs);
+    return {
+      data,
+      path: locale.path,
+    };
+  }
+
+  dumpAll() {
     const locales: {
       path: string;
       data: string;
     }[] = [];
-    for (const [code, locale] of this.locales) {
-      const blocks = msgsToLines(this.template.id, locale.msgs);
-      locales.push({
-        path: locale.path,
-        data: blocks,
-      });
+    for (const [code] of this.locales) {
+      const data = this.dumpLocale(code);
+      if (data) locales.push(data);
     }
-    // convert template
-    const absModules = this.meta.modules;
-    this.meta.modules = new Set(
-      Array.from(absModules).map((path) => {
-        return this.relativePath(path);
-      })
-    );
-    locales.push({
-      path: this.path,
-      data: msgsToLines(this.template.id, this.template.msg),
-    });
-    this.meta.modules = absModules;
+    const data = this.dumpTemplate();
+    if (data) locales.push(data);
     return locales;
   }
 

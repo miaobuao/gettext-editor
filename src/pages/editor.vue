@@ -10,6 +10,18 @@
 
     <v-spacer></v-spacer>
 
+    <v-tooltip :text="$t('action.save_all')" location="left">
+      <template v-slot:activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon="mdi-content-save-outline"
+          flat
+          @click="saveAll"
+        >
+        </v-btn>
+      </template>
+    </v-tooltip>
+
     <v-menu>
       <template v-slot:activator="{ props: menu }">
         <v-btn icon="mdi-plus" flat v-bind="menu"> </v-btn>
@@ -31,31 +43,17 @@
     <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
   </v-app-bar>
 
-  <v-navigation-drawer
-    location="right"
-    :width="400"
-    v-if="!hiddenErrors && errors.length"
-  >
-    <v-alert
-      type="error"
-      v-for="(err, idx) in errors.toReversed()"
-      closable
-      :key="err.id"
-      @click:close="eraseError(err.id)"
-      :title="err.title"
-      :text="err.message"
-    ></v-alert>
-  </v-navigation-drawer>
-
   <v-navigation-drawer permanent :width="200">
     <v-divider></v-divider>
 
     <v-list density="compact" nav>
       <v-list-item
-        v-for="[code, locale] in locales"
+        v-for="[code] in locales"
         prepend-icon="mdi-translate"
         :title="code"
         :value="code"
+        rounded="xl"
+        :active="$route.params.locale === code"
         @click="linkToLocaleEditor(code)"
       ></v-list-item>
     </v-list>
@@ -73,29 +71,29 @@
 
 <script setup lang="ts">
 import { fs } from '@tauri-apps/api';
-import { isNil, uniqueId } from 'lodash';
-import { dirname, basename, join } from 'path-browserify';
-import type { CreateLocaleForm } from '~/components/LocaleCreator.vue';
+import { isNil } from 'lodash-es';
+import { basename } from 'path-browserify';
+import { selectFiles } from '../utils/file';
+import { isDir } from '../utils/invoke';
+import { Gettext } from '../utils/gettext';
+import type { CreateLocaleForm } from '../components/LocaleCreator.vue';
 import { onKeyStroke } from '@vueuse/core';
+import useGettext from '../stores/gettext';
+import useProject from '../stores/project';
+import { useLoadingBar, useNotification } from 'naive-ui';
 
-interface ErrorMessage {
-  id: string;
-  title: string;
-  message: string;
-}
 const { t: $t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const loading = useLoadingBar();
+const notify = useNotification();
 
 const showLocaleCreator = ref(false);
-const hiddenErrors = ref(false);
-const loading = ref(false);
 const project = useProject();
 const gettext = useGettext();
 const locales = computed(() => {
   return gettext.value.locales;
 });
-const errors = ref<ErrorMessage[]>([]);
 
 const createMenuOptions = [
   {
@@ -123,21 +121,17 @@ watch(
 );
 
 onKeyStroke(
-  ['s'],
+  ['s', 'S'],
   (e) => {
     if (!e.ctrlKey) {
       return;
     }
-    const dump = gettext.value.dump();
+    saveAll();
   },
   {
     dedupe: true,
   }
 );
-
-function eraseError(id: string) {
-  errors.value = errors.value.filter((err) => err.id !== id);
-}
 
 function createLocale(form: CreateLocaleForm) {
   const { code, path } = form;
@@ -173,10 +167,10 @@ async function addLocaleFromFile() {
         candidates.push(file);
       }
     } else {
-      errors.value.push({
-        id: uniqueId(),
+      notify.error({
         title: $t('error.failed_to_import_locale'),
-        message: $t('error.file_not_found_', { path: file }),
+        content: $t('error.file_not_found_', { path: file }),
+        duration: 3000,
       });
     }
   }
@@ -188,12 +182,12 @@ async function addLocaleFromFile() {
     } catch (error) {
       const msg = (error as Error).message;
       if (msg === 'error.invalid_po_file') {
-        errors.value.push({
-          id: uniqueId(),
+        notify.error({
           title: $t('error.failed_to_import_locale'),
-          message: $t('error.invalid_po_file', {
+          content: $t('error.invalid_po_file', {
             path,
           }),
+          duration: 3000,
         });
       }
     }
@@ -201,13 +195,11 @@ async function addLocaleFromFile() {
 }
 
 async function loadPot(path: string) {
-  loading.value = true;
+  loading.start();
   const text = await fs.readTextFile(path);
   if ((gettext.value = Gettext.parse({ path, text }))) {
-    project.value = {
-      name: basename(path),
-      path,
-    };
+    project.name = basename(path);
+    project.path = path;
   }
   Promise.all(
     // read all modules
@@ -230,12 +222,12 @@ async function loadPot(path: string) {
       });
     })
     .finally(() => {
-      loading.value = false;
+      loading.finish();
     });
 }
 
 function linkToSettings() {
-  const tgt = 'editor';
+  const tgt = 'editor-settings';
   if (route.name === tgt) return;
   router.replace({
     name: tgt,
@@ -250,4 +242,35 @@ function linkToLocaleEditor(locale: string) {
     },
   });
 }
+
+function saveAll() {
+  loading.start();
+  const dump = gettext.value.dumpAll();
+  Promise.all(
+    dump.map(({ path, data }) => {
+      return fs.writeTextFile(path, data);
+    })
+  ).finally(() => {
+    loading.finish();
+  });
+}
 </script>
+
+<style lang="scss">
+.fullscreen {
+  height: 100%;
+}
+html,
+body {
+  height: 100%;
+}
+#app {
+  height: 100vh;
+  > div {
+    height: 100%;
+    > div {
+      height: 100%;
+    }
+  }
+}
+</style>
