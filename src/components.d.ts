@@ -14,6 +14,8 @@ declare module 'vue' {
     Langs: typeof import('./utils/langs.ts')['default']
     LocaleCreator: typeof import('./components/LocaleCreator.vue')['default']
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
+    NLoadingBarProvider: typeof import('naive-ui')['NLoadingBarProvider']
+    NNotificationProvider: typeof import('naive-ui')['NNotificationProvider']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

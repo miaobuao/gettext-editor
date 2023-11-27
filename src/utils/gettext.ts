@@ -46,6 +46,12 @@ export interface MsgMetaData {
   extracted: string[]; // #.
 }
 
+export interface Locale {
+  path: string;
+  code: string;
+  msgs: Msg[];
+}
+
 export class Gettext {
   constructor(
     readonly path: string,
@@ -139,7 +145,7 @@ export class Gettext {
     return new Gettext(path, res);
   }
 
-  dump() {
+  dumpAll() {
     const locales: {
       path: string;
       data: string;
@@ -153,16 +159,20 @@ export class Gettext {
     }
     // convert template
     const absModules = this.meta.modules;
-    this.meta.modules = new Set(
-      Array.from(absModules).map((path) => {
-        return this.relativePath(path);
-      })
-    );
-    locales.push({
-      path: this.path,
-      data: msgsToLines(this.template.id, this.template.msg),
-    });
-    this.meta.modules = absModules;
+    try {
+      this.meta.modules = new Set(
+        Array.from(absModules).map((path) => {
+          return this.relativePath(path);
+        })
+      );
+      locales.push({
+        path: this.path,
+        data: msgsToLines(this.template.id, this.template.msg),
+      });
+      this.meta.modules = absModules;
+    } catch (e) {
+      console.error(e);
+    }
     return locales;
   }
 

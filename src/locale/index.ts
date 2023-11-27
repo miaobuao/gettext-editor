@@ -6,6 +6,7 @@ interface LocaleStruct {
     };
     open_from_file: string;
     open_from_env: string;
+    save_all: string;
   };
   error: {
     locale_already_exists: string;
@@ -36,6 +37,7 @@ const en: LocaleStruct = {
       import_from_file: 'Import from file',
       create_from_template: 'Create from template',
     },
+    save_all: 'Save all',
     open_from_file: 'Open from file',
     open_from_env: 'Open from env',
   },
@@ -68,6 +70,7 @@ const zh: LocaleStruct = {
       import_from_file: '从文件导入',
       create_from_template: '从模板创建',
     },
+    save_all: '保存所有更改',
     open_from_file: '从文件打开',
     open_from_env: '从环境变量打开',
   },

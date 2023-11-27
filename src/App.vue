@@ -4,9 +4,13 @@
     :locale="zhCN"
     :date-locale="dateZhCN"
   >
-    <v-app>
-      <router-view></router-view>
-    </v-app>
+    <n-notification-provider>
+      <n-loading-bar-provider>
+        <v-app>
+          <router-view></router-view>
+        </v-app>
+      </n-loading-bar-provider>
+    </n-notification-provider>
   </n-config-provider>
 </template>
 
