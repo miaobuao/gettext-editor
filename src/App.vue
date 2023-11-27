@@ -6,9 +6,7 @@
   >
     <n-notification-provider>
       <n-loading-bar-provider>
-        <v-app>
-          <router-view></router-view>
-        </v-app>
+        <router-view></router-view>
       </n-loading-bar-provider>
     </n-notification-provider>
   </n-config-provider>

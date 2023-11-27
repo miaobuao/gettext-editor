@@ -193,6 +193,27 @@ export class Gettext {
     return locales;
   }
 
+  updateLocale(code: string, msgid: string, str: string) {
+    const msg = this.locales.get(code)?.msgs.find((msg) => msg.id === msgid);
+    if (msg) {
+      msg.str = str.split('\n');
+    } else if (this.template.id.has(msgid)) {
+      this.locales.get(code)?.msgs.push({
+        id: msgid,
+        str: str.split('\n'),
+        meta: msgMetaInit(),
+      });
+    }
+  }
+
+  findMsgId(id: string) {
+    return this.template.id.get(id);
+  }
+
+  findLocale(code: string, id: string) {
+    return this.locales.get(code)?.msgs.find((msg) => msg.id === id);
+  }
+
   addModule(path: string) {
     this.meta.modules.add(this.absolutePath(path));
   }
@@ -266,6 +287,9 @@ export function gettextMsgsParser(text: string): POTemplate {
           lines[i + 1].endsWith('"')
         ) {
           msgstr.push(lines[++i].slice(1, -1));
+        }
+        if (msgstr.length > 1 && msgstr[0].length === 0) {
+          msgstr = msgstr.slice(1);
         }
         break;
       } else {
@@ -372,18 +396,42 @@ export function localeInit(path: string, code: string, msgId?: string): Locale {
   return {
     path,
     code,
-    msgs: [
-      {
-        id: msgId ?? '',
-        str: [''],
-        meta: {
-          comment: [],
-          extracted: [],
-          reference: [],
-          flags: new Set<string>(),
-          modules: new Set<string>(),
-        },
-      },
-    ],
+    msgs: [msgInit({ id: msgId })],
+  };
+}
+
+interface MsgInitOptions {
+  id?: string;
+  str?: string[];
+  meta?: MsgMetaData;
+}
+export function msgInit({ id, str, meta }: MsgInitOptions = {}) {
+  return {
+    id: id ?? '',
+    str: str ?? [''],
+    meta: meta ?? msgMetaInit(),
+  };
+}
+
+interface MsgMetaDataInitOptions {
+  comment?: string[];
+  extracted?: string[];
+  reference?: string[];
+  flags?: Set<string>;
+  modules?: Set<string>;
+}
+export function msgMetaInit({
+  comment,
+  extracted,
+  reference,
+  flags,
+  modules,
+}: MsgMetaDataInitOptions = {}) {
+  return {
+    comment: comment ?? [],
+    extracted: extracted ?? [],
+    reference: reference ?? [],
+    flags: flags ?? new Set<string>(),
+    modules: modules ?? new Set<string>(),
   };
 }

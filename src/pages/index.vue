@@ -1,24 +1,26 @@
 <template>
-  <v-main class="vertical-center">
-    <v-item-group selected-class="bg-primary ">
-      <v-container class="horizontal-center container">
-        <v-row>
-          <v-col v-for="n in openMethods" :key="n.title">
-            <v-item>
-              <v-card class="align-center" @click="n.action">
-                <div class="text-center pa-10">
-                  <v-icon size="100" :icon="n.icon"></v-icon>
-                </div>
-                <div class="text-center">
-                  {{ n.title }}
-                </div>
-              </v-card>
-            </v-item>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-item-group>
-  </v-main>
+  <v-app>
+    <v-main class="vertical-center">
+      <v-item-group selected-class="bg-primary ">
+        <v-container class="horizontal-center container">
+          <v-row>
+            <v-col v-for="n in openMethods" :key="n.title">
+              <v-item>
+                <v-card class="align-center" @click="n.action">
+                  <div class="text-center pa-10">
+                    <v-icon size="100" :icon="n.icon"></v-icon>
+                  </div>
+                  <div class="text-center">
+                    {{ n.title }}
+                  </div>
+                </v-card>
+              </v-item>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-item-group>
+    </v-main>
+  </v-app>
 </template>
 
 <script setup lang="ts">

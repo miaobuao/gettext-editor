@@ -1,72 +1,74 @@
 <template>
-  <v-app-bar>
-    <template v-slot:prepend>
-      <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
-    </template>
-
-    <v-app-bar-title>
-      {{ project.name }}
-    </v-app-bar-title>
-
-    <v-spacer></v-spacer>
-
-    <v-tooltip :text="$t('action.save_all')" location="left">
-      <template v-slot:activator="{ props }">
-        <v-btn
-          v-bind="props"
-          icon="mdi-content-save-outline"
-          flat
-          @click="saveAll"
-        >
-        </v-btn>
-      </template>
-    </v-tooltip>
-
-    <v-menu>
-      <template v-slot:activator="{ props: menu }">
-        <v-btn icon="mdi-plus" flat v-bind="menu"> </v-btn>
+  <v-app>
+    <v-app-bar>
+      <template v-slot:prepend>
+        <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
       </template>
 
-      <v-list>
+      <v-app-bar-title>
+        {{ project.name }}
+      </v-app-bar-title>
+
+      <v-spacer></v-spacer>
+
+      <v-tooltip :text="$t('action.save_all')" location="left">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon="mdi-content-save-outline"
+            flat
+            @click="saveAll"
+          >
+          </v-btn>
+        </template>
+      </v-tooltip>
+
+      <v-menu>
+        <template v-slot:activator="{ props: menu }">
+          <v-btn icon="mdi-plus" flat v-bind="menu"> </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item
+            v-for="option in createMenuOptions"
+            :key="option.title"
+            @click="option.action"
+          >
+            <v-list-item-title>
+              {{ option.title }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
+      <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
+    </v-app-bar>
+
+    <v-navigation-drawer permanent :width="200">
+      <v-divider></v-divider>
+
+      <v-list density="compact" nav>
         <v-list-item
-          v-for="option in createMenuOptions"
-          :key="option.title"
-          @click="option.action"
-        >
-          <v-list-item-title>
-            {{ option.title }}
-          </v-list-item-title>
-        </v-list-item>
+          v-for="[code] in locales"
+          prepend-icon="mdi-translate"
+          :title="code"
+          :value="code"
+          rounded="xl"
+          :active="$route.params.locale === code"
+          @click="linkToLocaleEditor(code)"
+        ></v-list-item>
       </v-list>
-    </v-menu>
+    </v-navigation-drawer>
 
-    <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
-  </v-app-bar>
+    <v-main>
+      <router-view></router-view>
+    </v-main>
 
-  <v-navigation-drawer permanent :width="200">
-    <v-divider></v-divider>
-
-    <v-list density="compact" nav>
-      <v-list-item
-        v-for="[code] in locales"
-        prepend-icon="mdi-translate"
-        :title="code"
-        :value="code"
-        rounded="xl"
-        :active="$route.params.locale === code"
-        @click="linkToLocaleEditor(code)"
-      ></v-list-item>
-    </v-list>
-  </v-navigation-drawer>
-
-  <v-main>
-    <router-view></router-view>
-  </v-main>
-
-  <locale-creator
-    v-model:dialog="showLocaleCreator"
-    @submit="createLocale"
-  ></locale-creator>
+    <locale-creator
+      v-model:dialog="showLocaleCreator"
+      @submit="createLocale"
+    ></locale-creator>
+  </v-app>
 </template>
 
 <script setup lang="ts">

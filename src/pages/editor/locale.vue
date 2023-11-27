@@ -5,16 +5,51 @@
 
   <v-window v-model="tab">
     <v-window-item v-for="ctx in context" :value="ctx">
-      <v-container>
-        <v-card density="compact">
-          <v-card-text>{{ ctx }}</v-card-text>
-          <v-textarea label="Label" variant="outlined"></v-textarea>
-          <v-card-actions>
-            <v-btn>{{ $t('common.submit') }}</v-btn>
-            <v-btn>{{ $t('common.undo') }}</v-btn>
+      <div class="editor-container w-full flex">
+        <n-layout style="height: 100%">
+          <n-layout position="absolute" has-sider>
+            <n-layout-sider :native-scrollbar="false" bordered :width="200">
+            </n-layout-sider>
+            <n-layout :native-scrollbar="false"> </n-layout>
+          </n-layout>
+        </n-layout>
+      </div>
+      <!-- <v-container class="editor-container space-y-3">
+        <v-card
+          v-for="msg in gettext.value.template.msg.slice(1)"
+          variant="outlined"
+          density="compact"
+        >
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-textarea
+                  auto-grow
+                  density="compact"
+                  disabled
+                  :model-value="gettext.value.findMsgId(msg.id)?.id"
+                  label="Msg ID"
+                  variant="outlined"
+                  rows="1"
+                ></v-textarea>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-textarea
+                  density="compact"
+                  auto-grow
+                  label="Msg Str"
+                  variant="outlined"
+                  rows="1"
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-card-text>
+
+          <v-card-actions density="compact">
+            <v-btn density="compact">{{ $t('common.save') }}</v-btn>
           </v-card-actions>
         </v-card>
-      </v-container>
+      </v-container> -->
     </v-window-item>
   </v-window>
 </template>
@@ -44,3 +79,10 @@ const context = computed(() => {
 });
 const tab = ref(context.value[0]);
 </script>
+
+<style scoped lang="scss">
+.editor-container {
+  height: calc(100vh - 48px - 64px);
+  overflow-y: auto;
+}
+</style>
