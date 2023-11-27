@@ -2,6 +2,9 @@
 # 
 #- En.po
 #- ../src-tauri/zh.po
+#- en.po
+#- ../src-tauri/en.po
+#- zh.po
 #, fuzzy
 msgid ""
 msgstr ""

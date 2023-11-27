@@ -1,0 +1,8 @@
+msgid ""
+msgstr ""
+
+msgid "editor"
+msgstr "编辑器"
+
+msgid "test"
+msgstr "测试"

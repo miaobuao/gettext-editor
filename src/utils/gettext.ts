@@ -1,7 +1,7 @@
 /**
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
-import { isNil, uniqueId } from 'lodash-es';
+import { assign, isNil, uniqueId } from 'lodash-es';
 import {
   basename,
   dirname,
@@ -193,16 +193,13 @@ export class Gettext {
     return locales;
   }
 
-  updateLocale(code: string, msgid: string, str: string) {
-    const msg = this.locales.get(code)?.msgs.find((msg) => msg.id === msgid);
-    if (msg) {
-      msg.str = str.split('\n');
-    } else if (this.template.id.has(msgid)) {
-      this.locales.get(code)?.msgs.push({
-        id: msgid,
-        str: str.split('\n'),
-        meta: msgMetaInit(),
-      });
+  updateLocale(code: string, msg: Msg) {
+    const srcMsg =
+      this.locales.get(code)?.msgs.findIndex((src) => src.id === msg.id) ?? -1;
+    if (srcMsg >= 0) {
+      this.locales.get(code)?.msgs.splice(srcMsg, 1, msg);
+    } else if (this.template.id.has(msg.id)) {
+      this.locales.get(code)?.msgs.push(msg);
     }
   }
 
@@ -214,7 +211,7 @@ export class Gettext {
     return this.locales.get(code);
   }
 
-  findMsg(code: string, id: string) {
+  findMsgStr(code: string, id: string) {
     return this.findLocale(code)?.msgs.find((msg) => msg.id === id);
   }
 

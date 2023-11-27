@@ -1,2 +1,8 @@
 msgid ""
 msgstr ""
+
+msgid "test"
+msgstr "test"
+
+msgid "editor"
+msgstr "editor"

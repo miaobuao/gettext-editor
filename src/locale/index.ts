@@ -28,11 +28,14 @@ interface LocaleStruct {
     ok: string;
     locale: string;
     path: string;
+    save: string;
     undo: string;
+    comment: string;
   };
   editor: {
     label: {
       source_string: string;
+      target_string: string;
     };
   };
 }
@@ -68,10 +71,13 @@ const en: LocaleStruct = {
     locale: 'Locale',
     path: 'Path',
     undo: 'Undo',
+    save: 'Save',
+    comment: 'Comment',
   },
   editor: {
     label: {
       source_string: 'Source string',
+      target_string: 'Target string',
     },
   },
 };
@@ -107,10 +113,13 @@ const zh: LocaleStruct = {
     locale: '语言',
     path: '路径',
     undo: '撤销',
+    save: '保存',
+    comment: '注释',
   },
   editor: {
     label: {
       source_string: '源字符串',
+      target_string: '目标字符串',
     },
   },
 };

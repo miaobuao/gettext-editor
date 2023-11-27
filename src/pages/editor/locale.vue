@@ -8,15 +8,15 @@
       <div class="editor-container w-full flex">
         <n-layout style="height: 100%">
           <n-layout position="absolute" has-sider>
-            <n-layout-sider :native-scrollbar="false" bordered :width="200">
+            <n-layout-sider :native-scrollbar="false" bordered :width="240">
               <v-list nav>
-                <template v-for="msg in gettext.value.template.msg.slice(1)">
+                <template v-for="{ str, id, msgUuid } in msgs?.slice(1)">
                   <v-list-item
-                    v-if="msg.str.length === 1 && msg.str[0].length === 0"
-                    :title="gettext.value.findMsgId(msg.id)?.id"
-                    :value="msg.id"
-                    @click="selectedMsgId = msg.id"
-                    :active="msg.id === selectedMsgId"
+                    v-if="(str?.length ?? 0) === 0"
+                    :title="id.id"
+                    :value="msgUuid"
+                    @click="selectedMsgUuid = msgUuid"
+                    :active="selectedMsgUuid === msgUuid"
                     rounded="xl"
                   >
                     <template v-slot:append>
@@ -25,36 +25,68 @@
                   </v-list-item>
                   <v-list-item
                     v-else
-                    :title="gettext.value.findMsgId(msg.id)?.id"
-                    :subtitle="msg.str.join(' ')"
-                    :value="msg.id"
-                    @click="selectedMsgId = msg.id"
-                    :active="msg.id === selectedMsgId"
+                    :title="id.id"
+                    :subtitle="str"
+                    :value="msgUuid"
+                    @click="selectedMsgUuid = msgUuid"
+                    :active="selectedMsgUuid === msgUuid"
                     rounded="xl"
                   >
                     <template v-slot:append>
-                      <v-badge dot color="success" inline> </v-badge>
+                      <v-badge
+                        dot
+                        :color="
+                          unsavedUpdate?.has(msgUuid) ? 'warning' : 'success'
+                        "
+                        inline
+                      >
+                      </v-badge>
                     </template>
                   </v-list-item>
                 </template>
               </v-list>
             </n-layout-sider>
             <n-layout :native-scrollbar="false">
-              <v-card variant="flat" v-if="selectedMsgId">
+              <v-card variant="flat" v-if="selectedMsg">
                 <v-card-item>
                   <div>
                     <div class="text-overline mb-1">
                       {{ $t('editor.label.source_string') }}
                     </div>
-                    <div class="text-h6 mb-1">
-                      {{ gettext.value.findMsgId(selectedMsgId)?.id }}
+                    <div class="text-h6">
+                      {{ selectedMsg.id.id }}
                     </div>
-                    <div class="text-caption" v-pre=""></div>
                   </div>
                 </v-card-item>
-                <v-card-actions>
-                  <v-btn>save</v-btn>
-                </v-card-actions>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-card>
+                        <v-textarea
+                          :rows="3"
+                          autofocus
+                          auto-grow
+                          counter
+                          :label="$t('editor.label.target_string')"
+                          :model-value="selectedMsg.str"
+                          @update:modelValue="
+                            onUpdateMsgStr(selectedMsg.msgUuid, $event)
+                          "
+                        ></v-textarea>
+                        <v-card-actions>
+                          <v-btn @click="saveMsgStr(selectedMsg.msgUuid)">{{
+                            $t('common.save')
+                          }}</v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-card>
+                        <v-list :items="comments"> </v-list>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-container>
               </v-card>
             </n-layout>
           </n-layout>
@@ -65,13 +97,35 @@
 </template>
 
 <script setup lang="ts">
+import { isNil } from 'lodash-es';
 import useGettext from '../../stores/gettext';
-import { MsgId } from '../../utils/gettext';
+import { MsgId, msgInit } from '../../utils/gettext';
+import { fs } from '@tauri-apps/api';
+
 const route = useRoute();
 const gettext = useGettext();
 const locale = computed(() =>
   gettext.value.locales.get(route.params.locale as string)
 );
+const unsavedUpdateForAll = reactive(new Map<string, Map<string, string>>());
+watch(
+  locale,
+  (cur) => {
+    if (!cur) return;
+    const code = cur.code;
+    if (unsavedUpdateForAll.has(code)) {
+      return;
+    }
+    unsavedUpdateForAll.set(code, new Map());
+  },
+  {
+    immediate: true,
+  }
+);
+const unsavedUpdate = computed(() =>
+  unsavedUpdateForAll.get(locale.value?.code ?? '')
+);
+
 const msgids = computed(() => {
   const res = new Set<MsgId>();
   locale.value?.msgs.forEach((msg) => {
@@ -88,16 +142,77 @@ const context = computed(() => {
   return Array.from(res);
 });
 const tab = ref(context.value[0]);
-const selectedMsgId = ref<string>();
+
+const msgs = computed(() => {
+  if (!locale.value?.code) {
+    return;
+  }
+  const template = gettext.value.template.msg;
+  const res = [];
+  for (const msg of template) {
+    const msgid = gettext.value.findMsgId(msg.id);
+    const msgstr = gettext.value.findMsgStr(locale.value.code, msg.id);
+    if (msgid) {
+      const str = msgstr ?? msgInit({ id: msg.id });
+      res.push({
+        msgUuid: msg.id,
+        id: msgid,
+        str: unsavedUpdate.value?.has(msg.id)
+          ? unsavedUpdate.value?.get(msg.id)
+          : str.str.join('\n'),
+        meta: str.meta,
+      });
+    }
+  }
+  return res;
+});
+const selectedMsgUuid = ref<string>();
 const selectedMsg = computed({
   get() {
-    return gettext.value.findMsg(
-      locale.value?.code ?? '',
-      selectedMsgId.value ?? ''
-    );
+    return msgs.value?.find((msg) => msg.msgUuid === selectedMsgUuid.value);
   },
   set() {},
 });
+
+const { t } = useI18n();
+const comments = computed(() => [
+  { type: 'subheader', title: t('common.comment') },
+  ...(selectedMsg.value?.meta.comment.map((msg, idx) => ({
+    title: msg,
+    value: idx,
+  })) ?? []),
+]);
+
+function onUpdateMsgStr(msgIdx: string, str: string) {
+  unsavedUpdate.value?.set(msgIdx, str);
+}
+
+function saveMsgStr(msgUuid: string) {
+  const value = unsavedUpdate.value?.get(msgUuid);
+  if (isNil(value)) {
+    return;
+  }
+  if (locale.value) {
+    const msg = gettext.value.findMsgStr(locale.value?.code ?? '', msgUuid);
+    if (msg) {
+      msg.str = value.split('\n');
+      gettext.value.updateLocale(locale.value.code, msg);
+    } else {
+      gettext.value.updateLocale(
+        locale.value.code,
+        msgInit({
+          id: msgUuid,
+          str: value.split('\n'),
+        })
+      );
+    }
+    const { data, path } = gettext.value.dumpLocale(locale.value.code) ?? {};
+    if (data && path) {
+      fs.writeTextFile(path, data);
+    }
+  }
+  unsavedUpdate.value?.delete(msgUuid);
+}
 </script>
 
 <style scoped lang="scss">
