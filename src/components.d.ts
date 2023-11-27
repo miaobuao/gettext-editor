@@ -13,6 +13,7 @@ declare module 'vue' {
     Invoke: typeof import('./utils/invoke.ts')['default']
     Langs: typeof import('./utils/langs.ts')['default']
     LocaleCreator: typeof import('./components/LocaleCreator.vue')['default']
+    NCard: typeof import('naive-ui')['NCard']
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NH2: typeof import('naive-ui')['NH2']
     NLayout: typeof import('naive-ui')['NLayout']

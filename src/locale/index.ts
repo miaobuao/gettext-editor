@@ -30,6 +30,11 @@ interface LocaleStruct {
     path: string;
     undo: string;
   };
+  editor: {
+    label: {
+      source_string: string;
+    };
+  };
 }
 
 const en: LocaleStruct = {
@@ -64,6 +69,11 @@ const en: LocaleStruct = {
     path: 'Path',
     undo: 'Undo',
   },
+  editor: {
+    label: {
+      source_string: 'Source string',
+    },
+  },
 };
 
 const zh: LocaleStruct = {
@@ -97,6 +107,11 @@ const zh: LocaleStruct = {
     locale: '语言',
     path: '路径',
     undo: '撤销',
+  },
+  editor: {
+    label: {
+      source_string: '源字符串',
+    },
   },
 };
 

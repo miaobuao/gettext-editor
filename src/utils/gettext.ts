@@ -210,8 +210,12 @@ export class Gettext {
     return this.template.id.get(id);
   }
 
-  findLocale(code: string, id: string) {
-    return this.locales.get(code)?.msgs.find((msg) => msg.id === id);
+  findLocale(code: string) {
+    return this.locales.get(code);
+  }
+
+  findMsg(code: string, id: string) {
+    return this.findLocale(code)?.msgs.find((msg) => msg.id === id);
   }
 
   addModule(path: string) {

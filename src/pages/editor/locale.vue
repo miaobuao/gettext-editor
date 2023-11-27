@@ -9,47 +9,57 @@
         <n-layout style="height: 100%">
           <n-layout position="absolute" has-sider>
             <n-layout-sider :native-scrollbar="false" bordered :width="200">
+              <v-list nav>
+                <template v-for="msg in gettext.value.template.msg.slice(1)">
+                  <v-list-item
+                    v-if="msg.str.length === 1 && msg.str[0].length === 0"
+                    :title="gettext.value.findMsgId(msg.id)?.id"
+                    :value="msg.id"
+                    @click="selectedMsgId = msg.id"
+                    :active="msg.id === selectedMsgId"
+                    rounded="xl"
+                  >
+                    <template v-slot:append>
+                      <v-badge dot color="error" inline></v-badge>
+                    </template>
+                  </v-list-item>
+                  <v-list-item
+                    v-else
+                    :title="gettext.value.findMsgId(msg.id)?.id"
+                    :subtitle="msg.str.join(' ')"
+                    :value="msg.id"
+                    @click="selectedMsgId = msg.id"
+                    :active="msg.id === selectedMsgId"
+                    rounded="xl"
+                  >
+                    <template v-slot:append>
+                      <v-badge dot color="success" inline> </v-badge>
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-list>
             </n-layout-sider>
-            <n-layout :native-scrollbar="false"> </n-layout>
+            <n-layout :native-scrollbar="false">
+              <v-card variant="flat" v-if="selectedMsgId">
+                <v-card-item>
+                  <div>
+                    <div class="text-overline mb-1">
+                      {{ $t('editor.label.source_string') }}
+                    </div>
+                    <div class="text-h6 mb-1">
+                      {{ gettext.value.findMsgId(selectedMsgId)?.id }}
+                    </div>
+                    <div class="text-caption" v-pre=""></div>
+                  </div>
+                </v-card-item>
+                <v-card-actions>
+                  <v-btn>save</v-btn>
+                </v-card-actions>
+              </v-card>
+            </n-layout>
           </n-layout>
         </n-layout>
       </div>
-      <!-- <v-container class="editor-container space-y-3">
-        <v-card
-          v-for="msg in gettext.value.template.msg.slice(1)"
-          variant="outlined"
-          density="compact"
-        >
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-textarea
-                  auto-grow
-                  density="compact"
-                  disabled
-                  :model-value="gettext.value.findMsgId(msg.id)?.id"
-                  label="Msg ID"
-                  variant="outlined"
-                  rows="1"
-                ></v-textarea>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-textarea
-                  density="compact"
-                  auto-grow
-                  label="Msg Str"
-                  variant="outlined"
-                  rows="1"
-                ></v-textarea>
-              </v-col>
-            </v-row>
-          </v-card-text>
-
-          <v-card-actions density="compact">
-            <v-btn density="compact">{{ $t('common.save') }}</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-container> -->
     </v-window-item>
   </v-window>
 </template>
@@ -78,6 +88,16 @@ const context = computed(() => {
   return Array.from(res);
 });
 const tab = ref(context.value[0]);
+const selectedMsgId = ref<string>();
+const selectedMsg = computed({
+  get() {
+    return gettext.value.findMsg(
+      locale.value?.code ?? '',
+      selectedMsgId.value ?? ''
+    );
+  },
+  set() {},
+});
 </script>
 
 <style scoped lang="scss">
