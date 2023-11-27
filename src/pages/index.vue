@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { invoke, fs } from '@tauri-apps/api';
-import { isNil } from 'lodash';
+import { isNil } from 'lodash-es';
 import { getCwd } from '../utils/invoke';
 import { selectSingleFile } from '../utils/file';
 import useProject from '../stores/project';

@@ -52,6 +52,8 @@
         prepend-icon="mdi-translate"
         :title="code"
         :value="code"
+        rounded="xl"
+        :active="$route.params.locale === code"
         @click="linkToLocaleEditor(code)"
       ></v-list-item>
     </v-list>
@@ -69,7 +71,7 @@
 
 <script setup lang="ts">
 import { fs } from '@tauri-apps/api';
-import { isNil } from 'lodash';
+import { isNil } from 'lodash-es';
 import { basename } from 'path-browserify';
 import { selectFiles } from '../utils/file';
 import { isDir } from '../utils/invoke';
@@ -233,8 +235,6 @@ function linkToSettings() {
 }
 
 function linkToLocaleEditor(locale: string) {
-  console.log({ locale });
-
   return router.replace({
     name: 'editor-locale',
     params: {

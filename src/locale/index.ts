@@ -28,6 +28,7 @@ interface LocaleStruct {
     ok: string;
     locale: string;
     path: string;
+    undo: string;
   };
 }
 
@@ -61,6 +62,7 @@ const en: LocaleStruct = {
     ok: 'OK',
     locale: 'Locale',
     path: 'Path',
+    undo: 'Undo',
   },
 };
 
@@ -94,6 +96,7 @@ const zh: LocaleStruct = {
     ok: '确定',
     locale: '语言',
     path: '路径',
+    undo: '撤销',
   },
 };
 
