@@ -21,14 +21,6 @@
                   >
                     <template v-slot:append>
                       <v-badge dot color="error" inline></v-badge>
-                      <v-badge
-                        dot
-                        :color="
-                          unsavedComment?.has(msgUuid) ? 'warning' : 'success'
-                        "
-                        inline
-                      >
-                      </v-badge>
                     </template>
                   </v-list-item>
                   <v-list-item
@@ -45,14 +37,6 @@
                         dot
                         :color="
                           unsavedUpdate?.has(msgUuid) ? 'warning' : 'success'
-                        "
-                        inline
-                      >
-                      </v-badge>
-                      <v-badge
-                        dot
-                        :color="
-                          unsavedComment?.has(msgUuid) ? 'warning' : 'success'
                         "
                         inline
                       >
@@ -98,30 +82,18 @@
                       </v-card>
                     </v-col>
                     <v-col cols="12" lg="6">
-                      <v-card>
-                        <v-card-item>
-                          <v-textarea
-                            :label="$t('common.comment')"
-                            variant="underlined"
-                            counter
-                            :rows="2"
-                            auto-grow
-                            :model-value="selectedMsg.meta.comment"
-                            @update:modelValue="
-                              onUpdateComment(selectedMsg.msgUuid, $event)
-                            "
-                          >
-                            <template #append-inner>
-                              <v-btn
-                                @click="updateComment(selectedMsg.msgUuid)"
-                                rounded
-                                icon="mdi-comment-outline"
-                                flat
-                              ></v-btn>
-                            </template>
-                          </v-textarea>
-                        </v-card-item>
-                      </v-card>
+                      <v-textarea
+                        :label="$t('common.comment')"
+                        variant="solo"
+                        counter
+                        :rows="1"
+                        auto-grow
+                        :model-value="selectedMsg.meta.comment"
+                        @update:modelValue="
+                          onUpdateComment(selectedMsg.msgUuid, $event)
+                        "
+                      >
+                      </v-textarea>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -199,9 +171,7 @@ const msgs = computed(() => {
           ? unsavedUpdate.value?.get(msg.id)
           : str.str.join('\n'),
         meta: {
-          comment: unsavedComment.value?.has(msg.id)
-            ? unsavedComment.value?.get(msg.id)
-            : str.meta.comment.join('\n'),
+          comment: str.meta.comment.join('\n'),
         },
       });
     }
@@ -247,33 +217,11 @@ function saveMsgStr(msgUuid: string) {
   unsavedUpdate.value?.delete(msgUuid);
 }
 
-const unsavedCommentAll = reactive(new Map<string, Map<string, string>>());
-const unsavedComment = computed(() =>
-  unsavedCommentAll.get(locale.value?.code ?? '')
-);
-watch(
-  locale,
-  (cur) => {
-    if (!cur) return;
-    const code = cur.code;
-    if (unsavedCommentAll.has(code)) {
-      return;
-    }
-    unsavedCommentAll.set(code, new Map());
-  },
-  {
-    immediate: true,
-  }
-);
-
-function updateComment(msgUuid: string) {
+function onUpdateComment(msgUuid: string, value: string) {
   const code = locale.value?.code;
   if (!code) return;
   const msg = gettext.value.findMsgStr(code, msgUuid);
-  const comment = unsavedComment.value?.get(msgUuid);
-  if (isNil(comment)) return;
-  unsavedComment.value?.delete(msgUuid);
-  const commentValue = comment.length === 0 ? [] : comment.split('\n');
+  const commentValue = value.length === 0 ? [] : value.split('\n');
   if (msg) {
     msg.meta.comment = commentValue;
     gettext.value.updateLocale(code, msg);
@@ -292,12 +240,6 @@ function updateComment(msgUuid: string) {
   if (data && path) {
     fs.writeTextFile(path, data);
   }
-}
-
-function onUpdateComment(msgUuid: string, value: string) {
-  const code = locale.value?.code;
-  if (!code) return;
-  unsavedComment.value?.set(msgUuid, value);
 }
 </script>
 
