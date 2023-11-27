@@ -1,6 +1,8 @@
 msgid ""
 msgstr ""
 
+# test comment
+# :)
 msgid "test"
 msgstr "test"
 

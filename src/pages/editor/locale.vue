@@ -9,7 +9,7 @@
         <n-layout style="height: 100%">
           <n-layout position="absolute" has-sider>
             <n-layout-sider :native-scrollbar="false" bordered :width="240">
-              <v-list nav>
+              <v-list nav lines="two">
                 <template v-for="{ str, id, msgUuid } in msgs?.slice(1)">
                   <v-list-item
                     v-if="(str?.length ?? 0) === 0"
@@ -60,12 +60,13 @@
                 </v-card-item>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" md="6">
+                    <v-col cols="12" lg="6">
                       <v-card>
                         <v-textarea
                           :rows="3"
                           autofocus
                           auto-grow
+                          line
                           counter
                           :label="$t('editor.label.target_string')"
                           :model-value="selectedMsg.str"
@@ -80,9 +81,28 @@
                         </v-card-actions>
                       </v-card>
                     </v-col>
-                    <v-col cols="12" md="6">
+                    <v-col cols="12" lg="6">
                       <v-card>
-                        <v-list :items="comments"> </v-list>
+                        <v-card-item>
+                          <v-textarea
+                            :label="$t('common.comment')"
+                            variant="underlined"
+                            counter
+                            :model-value="selectedMsg.meta.comment"
+                            @update:modelValue="
+                              onUpdateComment(selectedMsg.msgUuid, $event)
+                            "
+                          >
+                            <template #append-inner>
+                              <v-btn
+                                @click="updateComment(selectedMsg.msgUuid)"
+                                rounded
+                                icon="mdi-comment-outline"
+                                flat
+                              ></v-btn>
+                            </template>
+                          </v-textarea>
+                        </v-card-item>
                       </v-card>
                     </v-col>
                   </v-row>
@@ -99,7 +119,7 @@
 <script setup lang="ts">
 import { isNil } from 'lodash-es';
 import useGettext from '../../stores/gettext';
-import { MsgId, msgInit } from '../../utils/gettext';
+import { MsgId, msgInit, msgMetaInit } from '../../utils/gettext';
 import { fs } from '@tauri-apps/api';
 
 const route = useRoute();
@@ -160,7 +180,11 @@ const msgs = computed(() => {
         str: unsavedUpdate.value?.has(msg.id)
           ? unsavedUpdate.value?.get(msg.id)
           : str.str.join('\n'),
-        meta: str.meta,
+        meta: {
+          comment: unsavedComment.value?.has(msg.id)
+            ? unsavedComment.value?.get(msg.id)
+            : msg.meta.comment.join('\n'),
+        },
       });
     }
   }
@@ -173,15 +197,6 @@ const selectedMsg = computed({
   },
   set() {},
 });
-
-const { t } = useI18n();
-const comments = computed(() => [
-  { type: 'subheader', title: t('common.comment') },
-  ...(selectedMsg.value?.meta.comment.map((msg, idx) => ({
-    title: msg,
-    value: idx,
-  })) ?? []),
-]);
 
 function onUpdateMsgStr(msgIdx: string, str: string) {
   unsavedUpdate.value?.set(msgIdx, str);
@@ -212,6 +227,57 @@ function saveMsgStr(msgUuid: string) {
     }
   }
   unsavedUpdate.value?.delete(msgUuid);
+}
+
+const unsavedCommentAll = reactive(new Map<string, Map<string, string>>());
+const unsavedComment = computed(() =>
+  unsavedCommentAll.get(locale.value?.code ?? '')
+);
+watch(
+  locale,
+  (cur) => {
+    if (!cur) return;
+    const code = cur.code;
+    if (unsavedCommentAll.has(code)) {
+      return;
+    }
+    unsavedCommentAll.set(code, new Map());
+  },
+  {
+    immediate: true,
+  }
+);
+
+function updateComment(msgUuid: string) {
+  const code = locale.value?.code;
+  if (!code) return;
+  const msg = gettext.value.findMsgStr(code, msgUuid);
+  const comment = unsavedComment.value?.get(msgUuid);
+  if (isNil(comment)) return;
+  if (msg) {
+    msg.meta.comment = comment.split('\n');
+    gettext.value.updateLocale(code, msg);
+  } else {
+    gettext.value.updateLocale(
+      code,
+      msgInit({
+        id: msgUuid,
+        meta: msgMetaInit({
+          comment: comment.split('\n'),
+        }),
+      })
+    );
+  }
+  const { data, path } = gettext.value.dumpLocale(code) ?? {};
+  if (data && path) {
+    fs.writeTextFile(path, data);
+  }
+}
+
+function onUpdateComment(msgUuid: string, value: string) {
+  const code = locale.value?.code;
+  if (!code) return;
+  unsavedComment.value?.set(msgUuid, value);
 }
 </script>
 
