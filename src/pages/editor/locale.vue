@@ -21,6 +21,14 @@
                   >
                     <template v-slot:append>
                       <v-badge dot color="error" inline></v-badge>
+                      <v-badge
+                        dot
+                        :color="
+                          unsavedComment?.has(msgUuid) ? 'warning' : 'success'
+                        "
+                        inline
+                      >
+                      </v-badge>
                     </template>
                   </v-list-item>
                   <v-list-item
@@ -37,6 +45,14 @@
                         dot
                         :color="
                           unsavedUpdate?.has(msgUuid) ? 'warning' : 'success'
+                        "
+                        inline
+                      >
+                      </v-badge>
+                      <v-badge
+                        dot
+                        :color="
+                          unsavedComment?.has(msgUuid) ? 'warning' : 'success'
                         "
                         inline
                       >
@@ -88,6 +104,8 @@
                             :label="$t('common.comment')"
                             variant="underlined"
                             counter
+                            :rows="2"
+                            auto-grow
                             :model-value="selectedMsg.meta.comment"
                             @update:modelValue="
                               onUpdateComment(selectedMsg.msgUuid, $event)
@@ -183,7 +201,7 @@ const msgs = computed(() => {
         meta: {
           comment: unsavedComment.value?.has(msg.id)
             ? unsavedComment.value?.get(msg.id)
-            : msg.meta.comment.join('\n'),
+            : str.meta.comment.join('\n'),
         },
       });
     }
@@ -254,8 +272,10 @@ function updateComment(msgUuid: string) {
   const msg = gettext.value.findMsgStr(code, msgUuid);
   const comment = unsavedComment.value?.get(msgUuid);
   if (isNil(comment)) return;
+  unsavedComment.value?.delete(msgUuid);
+  const commentValue = comment.length === 0 ? [] : comment.split('\n');
   if (msg) {
-    msg.meta.comment = comment.split('\n');
+    msg.meta.comment = commentValue;
     gettext.value.updateLocale(code, msg);
   } else {
     gettext.value.updateLocale(
@@ -263,7 +283,7 @@ function updateComment(msgUuid: string) {
       msgInit({
         id: msgUuid,
         meta: msgMetaInit({
-          comment: comment.split('\n'),
+          comment: commentValue,
         }),
       })
     );
