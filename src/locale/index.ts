@@ -31,6 +31,7 @@ interface LocaleStruct {
     save: string;
     undo: string;
     comment: string;
+    reset: string;
   };
   editor: {
     label: {
@@ -73,6 +74,7 @@ const en: LocaleStruct = {
     undo: 'Undo',
     save: 'Save',
     comment: 'Comment',
+    reset: 'Reset',
   },
   editor: {
     label: {
@@ -115,6 +117,7 @@ const zh: LocaleStruct = {
     undo: '撤销',
     save: '保存',
     comment: '注释',
+    reset: '重置',
   },
   editor: {
     label: {

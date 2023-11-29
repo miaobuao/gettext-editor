@@ -28,36 +28,41 @@
           <v-btn icon="mdi-plus" flat v-bind="menu"> </v-btn>
         </template>
 
-        <v-list>
-          <v-list-item
-            v-for="option in createMenuOptions"
-            :key="option.title"
-            @click="option.action"
-          >
-            <v-list-item-title>
-              {{ option.title }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
+        <action-list :option="createMenuOptions"></action-list>
       </v-menu>
 
       <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
     </v-app-bar>
 
     <v-navigation-drawer permanent :width="200">
-      <v-divider></v-divider>
-
-      <v-list density="compact" nav>
-        <v-list-item
-          v-for="[code] in locales"
-          prepend-icon="mdi-translate"
-          :title="code"
-          :value="code"
-          rounded="xl"
-          :active="$route.params.locale === code"
-          @click="linkToLocaleEditor(code)"
-        ></v-list-item>
-      </v-list>
+      <n-layout has-sider position="absolute">
+        <n-layout-sider bordered :width="32">
+          <div class="flex-col">
+            <v-btn
+              v-for="item in drawerToolbar"
+              :icon="item.icon"
+              @click="item.action"
+              flat
+              only-icon
+              rounded
+              size="x-small"
+            ></v-btn>
+          </div>
+        </n-layout-sider>
+        <n-layout>
+          <v-list density="compact" nav>
+            <v-list-item
+              v-for="[code] in locales"
+              prepend-icon="mdi-translate"
+              :title="code"
+              :value="code"
+              rounded="xl"
+              :active="$route.params.locale === code"
+              @click="linkToLocaleEditor(code)"
+            ></v-list-item>
+          </v-list>
+        </n-layout>
+      </n-layout>
     </v-navigation-drawer>
 
     <v-main>
@@ -83,6 +88,7 @@ import { onKeyStroke } from '@vueuse/core';
 import useGettext from '../stores/gettext';
 import useProject from '../stores/project';
 import { useLoadingBar, useNotification } from 'naive-ui';
+import { ActionListOption } from '../components/ActionList.vue';
 
 const { t: $t } = useI18n();
 const route = useRoute();
@@ -97,7 +103,7 @@ const locales = computed(() => {
   return gettext.value.locales;
 });
 
-const createMenuOptions = [
+const createMenuOptions: ActionListOption = [
   {
     title: $t('action.add_locale.create_from_template'),
     action: () => {
@@ -107,6 +113,22 @@ const createMenuOptions = [
   {
     title: $t('action.add_locale.import_from_file'),
     action: addLocaleFromFile,
+  },
+];
+const drawerToolbar = [
+  {
+    icon: 'mdi-plus',
+    action: () => {
+      showLocaleCreator.value = true;
+    },
+  },
+  {
+    icon: 'mdi-link',
+    action: addLocaleFromFile,
+  },
+  {
+    icon: 'mdi-cog-outline',
+    action: linkToSettings,
   },
 ];
 watch(

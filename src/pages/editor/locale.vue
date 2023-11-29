@@ -78,6 +78,10 @@
                           <v-btn @click="saveMsgStr(selectedMsg.msgUuid)">{{
                             $t('common.save')
                           }}</v-btn>
+                          <v-btn
+                            @click="unsavedUpdate?.delete(selectedMsg.msgUuid)"
+                            >{{ $t('common.reset') }}</v-btn
+                          >
                         </v-card-actions>
                       </v-card>
                     </v-col>
