@@ -349,11 +349,11 @@ export class Gettext {
   }
 
   get modules() {
-    return Array.from(this.meta.modules);
+    return Array.from(this.meta?.modules);
   }
 
   get meta() {
-    return this.template.msg[0].meta;
+    return this.template.msg[0]?.meta;
   }
 }
 

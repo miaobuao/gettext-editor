@@ -44,4 +44,7 @@ export default interface I18nTemplate {
       confirm_delete: string;
     };
   };
+  settings: {
+    modules: string;
+  };
 }

@@ -46,4 +46,7 @@ export const zh: I18nTemplate = {
       confirm_delete: '确定要删除吗？',
     },
   },
+  settings: {
+    modules: '模块',
+  },
 };
