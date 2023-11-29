@@ -4,7 +4,7 @@ msgstr ""
 msgid "editor"
 msgstr "编辑器"
 
-msgid "test"
+msgid "Test"
 msgstr "测试"
 
 msgid "Hello"

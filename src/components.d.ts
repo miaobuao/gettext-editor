@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ActionList: typeof import('./components/ActionList.vue')['default']
     Dom: typeof import('./utils/dom.ts')['default']
+    EditableText: typeof import('./components/EditableText.vue')['default']
     File: typeof import('./utils/file.ts')['default']
     Gettext: typeof import('./utils/gettext.ts')['default']
     Invoke: typeof import('./utils/invoke.ts')['default']

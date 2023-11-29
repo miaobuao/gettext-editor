@@ -29,8 +29,13 @@ import { fs } from '@tauri-apps/api';
 import { isNil } from 'lodash-es';
 import { getCwd, isDir, getInputPath } from '../utils/invoke';
 import { selectSingleFile } from '../utils/file';
+import useConfig from '../stores/config';
 const { t: $t } = useI18n();
-// const firstOpen = useState('firstOpen', () => true);
+const config = useConfig();
+
+if (config.visitIndexTime++ === 0) {
+  openFromEnv();
+}
 
 const openMethods = [
   {

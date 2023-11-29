@@ -95,9 +95,10 @@
                     {{ $t('editor.alert.confirm_delete') }}
                   </n-popconfirm>
                 </div>
-                <div class="text-h6">
-                  {{ selectedMsg.id.id }}
-                </div>
+                <editable-text
+                  :value="selectedMsg.id.id"
+                  @update:value="updateSelectedMsgId"
+                ></editable-text>
               </v-card-item>
               <v-container>
                 <v-row>
@@ -332,6 +333,17 @@ function deleteMsgId() {
   const uuid = selectedMsg.value?.msgUuid;
   if (!uuid) return;
   gettext.value.removeTemplateMsgId(uuid);
+}
+
+function updateSelectedMsgId(value: string) {
+  const uuid = selectedMsg.value?.msgUuid;
+  if (value && value.length && uuid) {
+    const old = gettext.value.findMsgId(uuid);
+    if (old) {
+      old.id = value;
+      gettext.value.updateMsgId(uuid, old);
+    }
+  }
 }
 </script>
 

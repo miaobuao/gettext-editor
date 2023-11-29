@@ -77,6 +77,7 @@ export class Gettext {
 
   removeTemplateMsgId(msgUuid: string) {
     this.template.id.delete(msgUuid);
+    return this.saveTemplate();
   }
 
   untranslatedMsgStrOf(localeCode: string) {
@@ -299,6 +300,30 @@ export class Gettext {
     } else if (this.template.id.has(msg.id)) {
       this.locales.get(code)?.msgs.push(msg);
     }
+    return this.saveLocale(code);
+  }
+
+  saveTemplate() {
+    const data = this.dumpTemplate();
+    if (!data) return;
+    return fs.writeTextFile(data.path, data.data);
+  }
+
+  saveLocale(code: string) {
+    const data = this.dumpLocale(code);
+    if (!data) return;
+    return fs.writeTextFile(data.path, data.data);
+  }
+
+  async saveAll() {
+    for (const data of this.dumpAll()) {
+      await fs.writeTextFile(data.path, data.data);
+    }
+  }
+
+  updateMsgId(id: string, msgid: MsgId) {
+    this.template.id.set(id, msgid);
+    return this.saveAll();
   }
 
   findMsgId(id: string) {
@@ -320,6 +345,7 @@ export class Gettext {
 
   addModule(path: string) {
     this.meta.modules.add(this.absolutePath(path));
+    this.saveTemplate();
   }
 
   get modules() {

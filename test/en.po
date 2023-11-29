@@ -3,7 +3,7 @@ msgstr ""
 
 # test comment
 # :)
-msgid "test"
+msgid "Test"
 msgstr "Test"
 
 msgid "editor"

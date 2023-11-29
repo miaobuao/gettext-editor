@@ -256,16 +256,10 @@ function linkToLocaleEditor(locale: string) {
   });
 }
 
-function saveAll() {
+async function saveAll() {
   loading.start();
-  const dump = gettext.value.dumpAll();
-  Promise.all(
-    dump.map(({ path, data }) => {
-      return fs.writeTextFile(path, data);
-    })
-  ).finally(() => {
-    loading.finish();
-  });
+  await gettext.value.saveAll();
+  loading.finish();
 }
 
 function createTemplateMsgId() {
