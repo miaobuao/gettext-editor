@@ -4,7 +4,10 @@ msgstr ""
 # test comment
 # :)
 msgid "test"
-msgstr "test"
+msgstr "Test"
 
 msgid "editor"
 msgstr "editor"
+
+msgid "Hello"
+msgstr ""

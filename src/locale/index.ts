@@ -7,6 +7,7 @@ interface LocaleStruct {
     open_from_file: string;
     open_from_env: string;
     save_all: string;
+    create_msg_id: string;
   };
   error: {
     locale_already_exists: string;
@@ -32,6 +33,7 @@ interface LocaleStruct {
     undo: string;
     comment: string;
     reset: string;
+    settings: string;
   };
   editor: {
     label: {
@@ -50,6 +52,7 @@ const en: LocaleStruct = {
     save_all: 'Save all',
     open_from_file: 'Open from file',
     open_from_env: 'Open from env',
+    create_msg_id: 'Create msg id',
   },
   error: {
     locale_already_exists: 'Locale already exists',
@@ -75,6 +78,7 @@ const en: LocaleStruct = {
     save: 'Save',
     comment: 'Comment',
     reset: 'Reset',
+    settings: 'Settings',
   },
   editor: {
     label: {
@@ -93,6 +97,7 @@ const zh: LocaleStruct = {
     save_all: '保存所有更改',
     open_from_file: '从文件打开',
     open_from_env: '从环境变量打开',
+    create_msg_id: '创建MsgID',
   },
   error: {
     locale_already_exists: '本地化已存在',
@@ -118,6 +123,7 @@ const zh: LocaleStruct = {
     save: '保存',
     comment: '注释',
     reset: '重置',
+    settings: '设置',
   },
   editor: {
     label: {

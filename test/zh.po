@@ -6,3 +6,6 @@ msgstr "编辑器"
 
 msgid "test"
 msgstr "测试"
+
+msgid "Hello"
+msgstr "你好"

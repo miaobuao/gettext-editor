@@ -1,108 +1,123 @@
 <template>
-  <v-tabs v-model="tab" bg-color="primary">
+  <v-tabs density="compact" v-model="tab" bg-color="primary">
     <v-tab v-for="ctx in context" :value="ctx"> {{ ctx }}</v-tab>
   </v-tabs>
 
   <v-window v-model="tab">
     <v-window-item v-for="ctx in context" :value="ctx">
       <div class="editor-container w-full flex">
-        <n-layout style="height: 100%">
-          <n-layout position="absolute" has-sider>
-            <n-layout-sider :native-scrollbar="false" bordered :width="240">
-              <v-list nav lines="two">
-                <template v-for="{ str, id, msgUuid } in msgs?.slice(1)">
-                  <v-list-item
-                    v-if="(str?.length ?? 0) === 0"
-                    :title="id.id"
-                    :value="msgUuid"
-                    @click="selectedMsgUuid = msgUuid"
-                    :active="selectedMsgUuid === msgUuid"
-                    rounded="xl"
-                  >
-                    <template v-slot:append>
-                      <v-badge dot color="error" inline></v-badge>
-                    </template>
-                  </v-list-item>
-                  <v-list-item
-                    v-else
-                    :title="id.id"
-                    :subtitle="str"
-                    :value="msgUuid"
-                    @click="selectedMsgUuid = msgUuid"
-                    :active="selectedMsgUuid === msgUuid"
-                    rounded="xl"
-                  >
-                    <template v-slot:append>
-                      <v-badge
-                        dot
-                        :color="
-                          unsavedUpdate?.has(msgUuid) ? 'warning' : 'success'
-                        "
-                        inline
+        <n-layout position="absolute" has-sider>
+          <n-layout-sider :native-scrollbar="false" bordered :width="240">
+            <n-layout position="absolute">
+              <n-layout-header class="flex" style="height: 33px" bordered>
+                <n-input
+                  v-model:value="searchString"
+                  :bordered="false"
+                ></n-input>
+                <v-spacer></v-spacer>
+                <!-- </v-row> -->
+              </n-layout-header>
+              <n-layout position="absolute" style="top: 33px">
+                <n-layout>
+                  <v-list nav lines="one">
+                    <template v-for="{ str, id, msgUuid } in msgs">
+                      <v-list-item
+                        v-if="(str?.length ?? 0) === 0"
+                        :title="id.id"
+                        :value="msgUuid"
+                        @click="selectedMsgUuid = msgUuid"
+                        :active="selectedMsgUuid === msgUuid"
+                        rounded="xl"
                       >
-                      </v-badge>
-                    </template>
-                  </v-list-item>
-                </template>
-              </v-list>
-            </n-layout-sider>
-            <n-layout :native-scrollbar="false">
-              <v-card variant="flat" v-if="selectedMsg">
-                <v-card-item>
-                  <div>
-                    <div class="text-overline mb-1">
-                      {{ $t('editor.label.source_string') }}
-                    </div>
-                    <div class="text-h6">
-                      {{ selectedMsg.id.id }}
-                    </div>
-                  </div>
-                </v-card-item>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" lg="6">
-                      <v-card>
-                        <v-textarea
-                          :rows="3"
-                          autofocus
-                          auto-grow
-                          line
-                          counter
-                          :label="$t('editor.label.target_string')"
-                          :model-value="selectedMsg.str"
-                          @update:modelValue="
-                            onUpdateMsgStr(selectedMsg.msgUuid, $event)
-                          "
-                        ></v-textarea>
-                        <v-card-actions>
-                          <v-btn @click="saveMsgStr(selectedMsg.msgUuid)">{{
-                            $t('common.save')
-                          }}</v-btn>
-                          <v-btn
-                            @click="unsavedUpdate?.delete(selectedMsg.msgUuid)"
-                            >{{ $t('common.reset') }}</v-btn
+                        <template v-slot:append>
+                          <v-badge dot color="error" inline></v-badge>
+                        </template>
+                      </v-list-item>
+                      <v-list-item
+                        v-else
+                        :title="id.id"
+                        :subtitle="str"
+                        :value="msgUuid"
+                        @click="selectedMsgUuid = msgUuid"
+                        :active="selectedMsgUuid === msgUuid"
+                        rounded="xl"
+                      >
+                        <template v-slot:append>
+                          <v-badge
+                            dot
+                            :color="
+                              unsavedUpdate?.has(msgUuid)
+                                ? 'warning'
+                                : 'success'
+                            "
+                            inline
                           >
-                        </v-card-actions>
-                      </v-card>
-                    </v-col>
-                    <v-col cols="12" lg="6">
-                      <v-textarea
-                        :label="$t('common.comment')"
-                        variant="solo"
-                        counter
-                        :rows="1"
-                        auto-grow
-                        :model-value="selectedMsg.meta.comment"
-                        @update:modelValue="
-                          onUpdateComment(selectedMsg.msgUuid, $event)
-                        "
-                      >
-                      </v-textarea>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card>
+                          </v-badge>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-list>
+                </n-layout>
+              </n-layout>
             </n-layout>
+          </n-layout-sider>
+          <n-layout :native-scrollbar="false">
+            <v-card variant="flat" v-if="selectedMsg">
+              <v-card-item>
+                <div>
+                  <div class="text-overline mb-1">
+                    {{ $t('editor.label.source_string') }}
+                  </div>
+                  <div class="text-h6">
+                    {{ selectedMsg.id.id }}
+                  </div>
+                </div>
+              </v-card-item>
+              <v-container>
+                <v-row>
+                  <v-col cols="12" lg="6">
+                    <v-card>
+                      <v-textarea
+                        :rows="3"
+                        autofocus
+                        auto-grow
+                        hide-details
+                        line
+                        counter
+                        :label="$t('editor.label.target_string')"
+                        :model-value="selectedMsg.str"
+                        @update:modelValue="
+                          onUpdateMsgStr(selectedMsg.msgUuid, $event)
+                        "
+                      ></v-textarea>
+                      <v-card-actions>
+                        <v-btn @click="saveMsgStr(selectedMsg.msgUuid)">{{
+                          $t('common.save')
+                        }}</v-btn>
+                        <v-btn
+                          @click="unsavedUpdate?.delete(selectedMsg.msgUuid)"
+                          >{{ $t('common.reset') }}</v-btn
+                        >
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" lg="6">
+                    <v-textarea
+                      :label="$t('common.comment')"
+                      variant="solo"
+                      counter
+                      :rows="1"
+                      auto-grow
+                      :model-value="selectedMsg.meta.comment"
+                      @update:modelValue="
+                        onUpdateComment(selectedMsg.msgUuid, $event)
+                      "
+                    >
+                    </v-textarea>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card>
           </n-layout>
         </n-layout>
       </div>
@@ -113,31 +128,36 @@
 <script setup lang="ts">
 import { isNil } from 'lodash-es';
 import useGettext from '../../stores/gettext';
+import useUnsavedUpdate from '../../stores/unsavedUpdate';
 import { MsgId, msgInit, msgMetaInit } from '../../utils/gettext';
 import { fs } from '@tauri-apps/api';
 
 const route = useRoute();
 const gettext = useGettext();
+const searchString = ref('');
+watch(searchString, (cur) => {
+  console.log(cur);
+});
 const locale = computed(() =>
   gettext.value.locales.get(route.params.locale as string)
 );
-const unsavedUpdateForAll = reactive(new Map<string, Map<string, string>>());
+const unsavedUpdateForAll = useUnsavedUpdate();
 watch(
   locale,
   (cur) => {
     if (!cur) return;
     const code = cur.code;
-    if (unsavedUpdateForAll.has(code)) {
+    if (unsavedUpdateForAll.value.has(code)) {
       return;
     }
-    unsavedUpdateForAll.set(code, new Map());
+    unsavedUpdateForAll.value.set(code, new Map());
   },
   {
     immediate: true,
   }
 );
 const unsavedUpdate = computed(() =>
-  unsavedUpdateForAll.get(locale.value?.code ?? '')
+  unsavedUpdateForAll.value.get(locale.value?.code ?? '')
 );
 
 const msgids = computed(() => {
@@ -163,12 +183,18 @@ const msgs = computed(() => {
   }
   const template = gettext.value.template.msg;
   const res = [];
+  const substring = searchString.value.trim().toLowerCase();
+  let skip = true;
   for (const msg of template) {
+    if (skip) {
+      skip = false;
+      continue;
+    }
     const msgid = gettext.value.findMsgId(msg.id);
     const msgstr = gettext.value.findMsgStr(locale.value.code, msg.id);
     if (msgid) {
       const str = msgstr ?? msgInit({ id: msg.id });
-      res.push({
+      const cell = {
         msgUuid: msg.id,
         id: msgid,
         str: unsavedUpdate.value?.has(msg.id)
@@ -177,7 +203,22 @@ const msgs = computed(() => {
         meta: {
           comment: str.meta.comment.join('\n'),
         },
+      };
+      console.log({
+        range: [msgid.id, msgid.plural, cell.str],
+        result: [msgid.id, msgid.plural, cell.str].some((str) =>
+          str?.toLowerCase().includes(substring)
+        ),
+        substring,
       });
+
+      if (
+        [msgid.id, msgid.plural, cell.str].some((str) =>
+          str?.toLowerCase().includes(substring)
+        )
+      ) {
+        res.push(cell);
+      }
     }
   }
   return res;
@@ -249,7 +290,7 @@ function onUpdateComment(msgUuid: string, value: string) {
 
 <style scoped lang="scss">
 .editor-container {
-  height: calc(100vh - 48px - 64px);
+  height: calc(100vh - 36px - 64px);
   overflow-y: auto;
 }
 </style>

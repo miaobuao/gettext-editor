@@ -1,6 +1,7 @@
 /**
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
+import { fs } from '@tauri-apps/api';
 import { assign, isNil, uniqueId } from 'lodash-es';
 import {
   basename,
@@ -10,6 +11,7 @@ import {
   join,
   relative,
 } from 'path-browserify';
+import project from '../stores/project';
 
 export const DEFAULT_CONTEXT = 'default';
 
@@ -74,11 +76,66 @@ export class Gettext {
     return join(this.basePath, path);
   }
 
+  untranslatedMsgStrOf(localeCode: string) {
+    const map: Record<
+      string,
+      {
+        untranslated: boolean;
+        msg: Msg;
+      }
+    > = {};
+    this.locales.get(localeCode)?.msgs.forEach((msg) => {
+      const str = msg.str[0];
+      if (msg.str.length === 1) {
+        map[msg.id] = { untranslated: str.length === 0, msg };
+      } else {
+        map[msg.id] = {
+          untranslated: false,
+          msg,
+        };
+      }
+    });
+    return this.template.msg
+      .slice(1)
+      .filter((msg) => {
+        if (map[msg.id] === undefined) return true;
+        return map[msg.id].untranslated;
+      })
+      .map((msg) => {
+        return (
+          map[msg.id].msg ??
+          msgInit({
+            id: msg.id,
+          })
+        );
+      });
+  }
+
+  hasUntranslatedMsgId(localeCode: string) {
+    const untranslated: Record<string, boolean> = {};
+    this.locales.get(localeCode)?.msgs.forEach((msg) => {
+      const str = msg.str[0];
+      if (msg.str.length === 1) {
+        untranslated[msg.id] = str.length === 0;
+      } else {
+        untranslated[msg.id] = false;
+      }
+    });
+    for (const msg of this.template.msg.slice(1)) {
+      if (untranslated[msg.id] ?? true) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * This method will return UUID of the message if found,
    * otherwise a new UUID.
    */
-  createMsg(context: string, id: string, plural?: string) {
+  createMsg(options: { context?: string; id: string; plural?: string }) {
+    let { context, id, plural } = options;
+    context = context ?? DEFAULT_CONTEXT;
     for (const [uuid, msgid] of this.template.id) {
       if (msgid.context === context && msgid.id === id) {
         return uuid;
@@ -91,6 +148,22 @@ export class Gettext {
       plural,
     });
     return uuid;
+  }
+
+  appendMsgId(options: { context?: string; id: string; plural?: string }) {
+    const uuid = this.createMsg(options);
+    if (this.template.msg.find((msg) => msg.id === uuid)) return;
+    this.template.msg.push(msgInit({ id: uuid }));
+  }
+
+  filterMsgId(options: { context?: string; id?: string; plural?: string }) {
+    const { context, id, plural } = options;
+    return Array.from(this.template.id.values()).filter((msgId: MsgId) => {
+      if (context && msgId.context !== context) return false;
+      if (id && msgId.id !== id) return false;
+      if (plural && msgId.plural !== plural) return false;
+      return true;
+    });
   }
 
   createLocale(path: string, code: string) {
@@ -132,7 +205,8 @@ export class Gettext {
     return locale;
   }
 
-  public static parse({ path, text }: { path: string; text: string }) {
+  public static async load(path: string) {
+    const text = await fs.readTextFile(path);
     if (!isAbsolute(path)) {
       throw new Error('path must be absolute');
     }
@@ -142,7 +216,28 @@ export class Gettext {
       absModules.add(join(dirname(path), module));
     });
     res.msg[0].meta.modules = absModules;
-    return new Gettext(path, res);
+    const project = new Gettext(path, res);
+
+    await Promise.all(
+      // read all modules
+      project?.modules.map(async (module) => {
+        if (!(await fs.exists(module))) {
+          return;
+        }
+        return {
+          path: module,
+          text: await fs.readTextFile(module),
+        };
+      }) ?? []
+    ).then((data) => {
+      data.forEach((result) => {
+        if (result) {
+          const { path, text } = result;
+          project?.importLocaleFromString(path, text);
+        }
+      });
+    });
+    return project;
   }
 
   getMsgId(id: string) {
@@ -212,7 +307,12 @@ export class Gettext {
   }
 
   findMsgStr(code: string, id: string) {
-    return this.findLocale(code)?.msgs.find((msg) => msg.id === id);
+    return (
+      this.findLocale(code)?.msgs.find((msg) => msg.id === id) ??
+      msgInit({
+        id,
+      })
+    );
   }
 
   addModule(path: string) {
