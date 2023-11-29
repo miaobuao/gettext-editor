@@ -15,6 +15,7 @@ declare module 'vue' {
     Langs: typeof import('./utils/langs.ts')['default']
     LocaleCreator: typeof import('./components/LocaleCreator.vue')['default']
     MsgCreator: typeof import('./components/MsgCreator.vue')['default']
+    NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NH2: typeof import('naive-ui')['NH2']
@@ -26,6 +27,7 @@ declare module 'vue' {
     NLayoutSider: typeof import('naive-ui')['NLayoutSider']
     NLoadingBarProvider: typeof import('naive-ui')['NLoadingBarProvider']
     NNotificationProvider: typeof import('naive-ui')['NNotificationProvider']
+    NPopconfirm: typeof import('naive-ui')['NPopconfirm']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

@@ -1,8 +1,8 @@
 <template>
   <n-config-provider
     :theme-overrides="{ common: { fontWeightStrong: '600' } }"
-    :locale="zhCN"
-    :date-locale="dateZhCN"
+    :locale="lang"
+    :date-locale="dateLang"
   >
     <n-notification-provider>
       <n-loading-bar-provider>
@@ -13,5 +13,26 @@
 </template>
 
 <script setup lang="ts">
-import { zhCN, dateZhCN } from 'naive-ui';
+import { zhCN, dateZhCN, enUS, dateEnUS } from 'naive-ui';
+
+import { currentLocale, Language } from './locale/utils';
+
+const lang = ref(enUS);
+const dateLang = ref(dateEnUS);
+
+watch(
+  currentLocale,
+  (locale) => {
+    if (locale === Language.en) {
+      lang.value = enUS;
+      dateLang.value = dateEnUS;
+    } else if (locale === Language.zh) {
+      lang.value = zhCN;
+      dateLang.value = dateZhCN;
+    }
+  },
+  {
+    immediate: true,
+  }
+);
 </script>

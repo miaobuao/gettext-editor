@@ -29,11 +29,8 @@ import { fs } from '@tauri-apps/api';
 import { isNil } from 'lodash-es';
 import { getCwd, isDir, getInputPath } from '../utils/invoke';
 import { selectSingleFile } from '../utils/file';
-import useProject from '../stores/project';
-
 const { t: $t } = useI18n();
 // const firstOpen = useState('firstOpen', () => true);
-const project = useProject();
 
 const openMethods = [
   {
@@ -52,11 +49,6 @@ const openMethods = [
     action: openFromEnv,
   },
 ];
-
-if (project.firstOpen) {
-  project.firstOpen = false;
-  openFromEnv();
-}
 
 async function openFromEnv() {
   const path = (await getInputPath()) ?? (await getCwd());

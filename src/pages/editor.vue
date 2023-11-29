@@ -5,9 +5,7 @@
         <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
       </template>
 
-      <v-app-bar-title>
-        {{ project.name }}
-      </v-app-bar-title>
+      <v-app-bar-title> {{ basename(gettext.value.path) }} </v-app-bar-title>
 
       <v-spacer></v-spacer>
 
@@ -91,9 +89,9 @@ import { Gettext } from '../utils/gettext';
 import type { CreateLocaleForm } from '../components/LocaleCreator.vue';
 import { onKeyStroke } from '@vueuse/core';
 import useGettext from '../stores/gettext';
-import useProject from '../stores/project';
 import { useLoadingBar, useNotification } from 'naive-ui';
 import useUnsavedUpdate from '../stores/unsavedUpdate';
+import { basename } from 'path-browserify';
 
 const { t: $t } = useI18n();
 const route = useRoute();
@@ -104,7 +102,6 @@ const unsavedUpdate = useUnsavedUpdate();
 
 const showLocaleCreator = ref(false);
 const showMsgCreator = ref(false);
-const project = useProject();
 const gettext = useGettext();
 const locales = computed(() => {
   return gettext.value.locales;

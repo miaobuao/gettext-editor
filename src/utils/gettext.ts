@@ -2,7 +2,7 @@
  * See https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/PO-Files.html
  */
 import { fs } from '@tauri-apps/api';
-import { assign, isNil, uniqueId } from 'lodash-es';
+import { isNil, uniqueId } from 'lodash-es';
 import {
   basename,
   dirname,
@@ -11,7 +11,6 @@ import {
   join,
   relative,
 } from 'path-browserify';
-import project from '../stores/project';
 
 export const DEFAULT_CONTEXT = 'default';
 
@@ -74,6 +73,10 @@ export class Gettext {
       return path;
     }
     return join(this.basePath, path);
+  }
+
+  removeTemplateMsgId(msgUuid: string) {
+    this.template.id.delete(msgUuid);
   }
 
   untranslatedMsgStrOf(localeCode: string) {
