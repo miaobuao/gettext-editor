@@ -1,110 +1,129 @@
 <template>
-  <v-app-bar>
-    <template v-slot:prepend>
-      <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
-    </template>
-
-    <v-app-bar-title>
-      {{ project.name }}
-    </v-app-bar-title>
-
-    <v-spacer></v-spacer>
-
-    <v-tooltip :text="$t('action.save_all')" location="left">
-      <template v-slot:activator="{ props }">
-        <v-btn
-          v-bind="props"
-          icon="mdi-content-save-outline"
-          flat
-          @click="saveAll"
-        >
-        </v-btn>
-      </template>
-    </v-tooltip>
-
-    <v-menu>
-      <template v-slot:activator="{ props: menu }">
-        <v-btn icon="mdi-plus" flat v-bind="menu"> </v-btn>
+  <v-app>
+    <v-app-bar>
+      <template v-slot:prepend>
+        <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
       </template>
 
-      <v-list>
-        <v-list-item
-          v-for="option in createMenuOptions"
-          :key="option.title"
-          @click="option.action"
-        >
-          <v-list-item-title>
-            {{ option.title }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+      <v-app-bar-title> {{ basename(gettext.value.path) }} </v-app-bar-title>
 
-    <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
-  </v-app-bar>
+      <v-spacer></v-spacer>
 
-  <v-navigation-drawer permanent :width="200">
-    <v-divider></v-divider>
+      <v-tooltip :text="$t('action.save_all')" location="left">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon="mdi-content-save-outline"
+            flat
+            @click="saveAll"
+          >
+          </v-btn>
+        </template>
+      </v-tooltip>
 
-    <v-list density="compact" nav>
-      <v-list-item
-        v-for="[code] in locales"
-        prepend-icon="mdi-translate"
-        :title="code"
-        :value="code"
-        rounded="xl"
-        :active="$route.params.locale === code"
-        @click="linkToLocaleEditor(code)"
-      ></v-list-item>
-    </v-list>
-  </v-navigation-drawer>
+      <v-btn icon="mdi-plus" flat @click="createTemplateMsgId"> </v-btn>
 
-  <v-main>
-    <router-view></router-view>
-  </v-main>
+      <v-btn icon="mdi-cog-outline" flat @click="linkToSettings"> </v-btn>
+    </v-app-bar>
 
-  <locale-creator
-    v-model:dialog="showLocaleCreator"
-    @submit="createLocale"
-  ></locale-creator>
+    <v-navigation-drawer permanent :width="200">
+      <n-layout has-sider position="absolute">
+        <n-layout-sider bordered :width="32">
+          <div class="flex-col">
+            <template v-for="item in drawerToolbar">
+              <v-tooltip :text="item.tips" location="right">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    :icon="item.icon"
+                    @click="item.action"
+                    flat
+                    only-icon
+                    rounded
+                    size="x-small"
+                  ></v-btn>
+                </template>
+              </v-tooltip>
+            </template>
+          </div>
+        </n-layout-sider>
+        <n-layout>
+          <v-list density="compact" nav>
+            <v-list-item
+              v-for="[code] in locales"
+              prepend-icon="mdi-translate"
+              :title="code"
+              :value="code"
+              rounded="xl"
+              :active="$route.params.locale === code"
+              @click="linkToLocaleEditor(code)"
+            >
+              <template v-slot:append>
+                <v-badge dot :color="localeStatus(code)" inline> </v-badge>
+              </template>
+            </v-list-item>
+          </v-list>
+        </n-layout>
+      </n-layout>
+    </v-navigation-drawer>
+
+    <v-main>
+      <router-view></router-view>
+    </v-main>
+
+    <locale-creator
+      v-model:dialog="showLocaleCreator"
+      @submit="createLocale"
+    ></locale-creator>
+
+    <msg-creator v-model:show="showMsgCreator"></msg-creator>
+  </v-app>
 </template>
 
 <script setup lang="ts">
 import { fs } from '@tauri-apps/api';
 import { isNil } from 'lodash-es';
-import { basename } from 'path-browserify';
 import { selectFiles } from '../utils/file';
 import { isDir } from '../utils/invoke';
 import { Gettext } from '../utils/gettext';
 import type { CreateLocaleForm } from '../components/LocaleCreator.vue';
 import { onKeyStroke } from '@vueuse/core';
 import useGettext from '../stores/gettext';
-import useProject from '../stores/project';
 import { useLoadingBar, useNotification } from 'naive-ui';
+import useUnsavedUpdate from '../stores/unsavedUpdate';
+import { basename } from 'path-browserify';
 
 const { t: $t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const loading = useLoadingBar();
 const notify = useNotification();
+const unsavedUpdate = useUnsavedUpdate();
 
 const showLocaleCreator = ref(false);
-const project = useProject();
+const showMsgCreator = ref(false);
 const gettext = useGettext();
 const locales = computed(() => {
   return gettext.value.locales;
 });
 
-const createMenuOptions = [
+const drawerToolbar = [
   {
-    title: $t('action.add_locale.create_from_template'),
+    icon: 'mdi-plus',
+    tips: $t('action.add_locale.create_from_template'),
     action: () => {
       showLocaleCreator.value = true;
     },
   },
   {
-    title: $t('action.add_locale.import_from_file'),
+    icon: 'mdi-link',
+    tips: $t('action.add_locale.import_from_file'),
     action: addLocaleFromFile,
+  },
+  {
+    icon: 'mdi-cog-outline',
+    tips: $t('common.settings'),
+    action: linkToSettings,
   },
 ];
 watch(
@@ -121,10 +140,18 @@ watch(
 );
 
 onKeyStroke(
-  ['s', 'S'],
+  ['s'],
   (e) => {
     if (!e.ctrlKey) {
       return;
+    }
+    for (const [code, unsaved] of unsavedUpdate.value) {
+      for (const [uuid, str] of unsaved) {
+        const msgstr = gettext.value.findMsgStr(code, uuid);
+        msgstr.str = str.split('\n');
+        gettext.value.updateLocale(code, msgstr);
+        unsaved.delete(uuid);
+      }
     }
     saveAll();
   },
@@ -194,31 +221,17 @@ async function addLocaleFromFile() {
   });
 }
 
-async function loadPot(path: string) {
+function loadPot(path: string) {
   loading.start();
-  const text = await fs.readTextFile(path);
-  if ((gettext.value = Gettext.parse({ path, text }))) {
-    project.name = basename(path);
-    project.path = path;
-  }
-  Promise.all(
-    // read all modules
-    gettext.value?.modules.map(async (module) => {
-      if (!(await fs.exists(module))) {
-        return;
-      }
-      return {
-        path: module,
-        text: await fs.readTextFile(module),
-      };
-    }) ?? []
-  )
-    .then((data) => {
-      data.forEach((result) => {
-        if (result) {
-          const { path, text } = result;
-          gettext.value?.importLocaleFromString(path, text);
-        }
+  Gettext.load(path)
+    .then((obj) => {
+      gettext.value = obj;
+    })
+    .catch((err: Error) => {
+      const msg = err.message;
+      notify.error({
+        title: msg,
+        duration: 3000,
       });
     })
     .finally(() => {
@@ -243,16 +256,24 @@ function linkToLocaleEditor(locale: string) {
   });
 }
 
-function saveAll() {
+async function saveAll() {
   loading.start();
-  const dump = gettext.value.dumpAll();
-  Promise.all(
-    dump.map(({ path, data }) => {
-      return fs.writeTextFile(path, data);
-    })
-  ).finally(() => {
-    loading.finish();
-  });
+  await gettext.value.saveAll();
+  loading.finish();
+}
+
+function createTemplateMsgId() {
+  showMsgCreator.value = true;
+}
+
+function localeStatus(localeCode: string) {
+  if (unsavedUpdate.value.get(localeCode)?.size ?? 0 > 0) {
+    return 'warning';
+  }
+  if (gettext.value.hasUntranslatedMsgId(localeCode)) {
+    return 'error';
+  }
+  return 'success';
 }
 </script>
 

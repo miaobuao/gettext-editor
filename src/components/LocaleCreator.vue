@@ -92,7 +92,7 @@ const form = ref();
 watch(
   () => props.dialog,
   (value) => {
-    if (value) {
+    if (value && dir.value.length === 0) {
       getCwd().then((path) => {
         dir.value = path;
       });
@@ -116,7 +116,6 @@ async function submit() {
 
 function closeDialog() {
   dialog.value = false;
-  dir.value = '';
   code.value = '';
 }
 async function onSelectDir() {

@@ -1,2 +1,13 @@
 msgid ""
 msgstr ""
+
+# test comment
+# :)
+msgid "Test"
+msgstr "Test"
+
+msgid "editor"
+msgstr "editor"
+
+msgid "Hello"
+msgstr ""
