@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import EditableText from '../../components/EditableText.vue';
 import { convertPathToCode, type Locale } from '../../utils/gettext';
-import { NButton, NIcon, type DataTableColumns } from 'naive-ui';
+import { NButton, NIcon, NPopconfirm, type DataTableColumns } from 'naive-ui';
 import { TrashOutline } from '@vicons/ionicons5';
 import useGettext from '../../stores/gettext';
 import { selectSingleDir } from '../../utils/file';
@@ -98,16 +98,27 @@ const columns = ((): DataTableColumns<Locale> => {
 })();
 
 function removeModuleBtn(path: string) {
-  return h(NButton, {
-    text: true,
-    size: 'small',
-    renderIcon() {
-      return h(NIcon, null, {
-        default: () => h(TrashOutline),
-      });
+  return h(
+    NPopconfirm,
+    {
+      onPositiveClick: () => {
+        removeLocale(path);
+      },
     },
-    onClick: () => removeLocale(path),
-  });
+    {
+      default: () => t('editor.alert.confirm_delete'),
+      trigger: () =>
+        h(NButton, {
+          text: true,
+          size: 'small',
+          renderIcon() {
+            return h(NIcon, null, {
+              default: () => h(TrashOutline),
+            });
+          },
+        }),
+    }
+  );
 }
 
 function removeLocale(path: string) {

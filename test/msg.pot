@@ -1,7 +1,6 @@
 # TESTING FOR GETTEXT EDITOR
 # 
 #- en.po
-#- zh.po
 #, fuzzy
 msgid ""
 msgstr ""
