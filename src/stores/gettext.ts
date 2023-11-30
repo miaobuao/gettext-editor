@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { Gettext } from '../utils/gettext';
+import { Gettext, convertPathToCode } from '../utils/gettext';
 
 export default defineStore('gettext', () => {
   return {
@@ -7,5 +7,12 @@ export default defineStore('gettext', () => {
       msg: [],
       id: new Map(),
     }),
+    project: {
+      name: '',
+    },
+    set(obj: Gettext) {
+      this.value.cloneFrom(obj);
+      this.project.name = convertPathToCode(obj.path);
+    },
   };
 });

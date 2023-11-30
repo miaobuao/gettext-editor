@@ -36,6 +36,7 @@ export const zh: I18nTemplate = {
     comment: '注释',
     reset: '重置',
     settings: '设置',
+    actions: '操作',
   },
   editor: {
     label: {

@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia';
 
-export default defineStore('config', () => {
+const useConfig = defineStore('config', () => {
   return {
     visitIndexTime: 0,
+    lastOpenedDir: undefined as string | undefined,
   };
 });
+
+export default useConfig;

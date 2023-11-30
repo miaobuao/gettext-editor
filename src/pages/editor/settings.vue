@@ -29,9 +29,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Locale } from '../../utils/gettext';
-import type { DataTableColumns } from 'naive-ui';
-import { NButton } from 'naive-ui';
+import { convertPathToCode, type Locale } from '../../utils/gettext';
+import { NButton, NIcon, type DataTableColumns } from 'naive-ui';
+import { TrashOutline } from '@vicons/ionicons5';
 import useGettext from '../../stores/gettext';
 const { t } = useI18n();
 const menuOptions = [['settings.modules', 'modules']].map(([label, key]) => ({
@@ -43,57 +43,63 @@ const { height: containerHeight } = useElementSize(container);
 const tab = ref(menuOptions[0].key);
 const gettext = useGettext();
 
-const createColumns = ({
-  remove,
-}: {
-  remove: (row: Locale) => void;
-}): DataTableColumns<Locale> => {
+const columns = ((): DataTableColumns<Locale> => {
   return [
     {
       title: '#',
       key: 'no',
       width: 60,
       resizable: true,
-      minWidth: 50,
     },
     {
-      title: 'locale',
+      title: t('common.locale'),
       key: 'code',
-      minWidth: 100,
+      width: 80,
       resizable: true,
     },
     {
-      title: 'path',
+      title: t('common.path'),
       key: 'path',
-      minWidth: 300,
+      width: 200,
       resizable: true,
     },
     {
-      title: 'Action',
+      title: t('common.actions'),
       key: 'actions',
+      align: 'center',
+      resizable: true,
+      width: 80,
       render(row) {
-        return h(
-          NButton,
-          {
-            strong: true,
-            tertiary: true,
-            size: 'small',
-            onClick: () => remove(row),
-          },
-          { default: () => 'remove' }
-        );
+        return removeModuleBtn(row.path);
       },
     },
   ];
-};
+})();
+
+function removeModuleBtn(path: string) {
+  return h(NButton, {
+    text: true,
+    size: 'small',
+    renderIcon() {
+      return h(NIcon, null, {
+        default: () => h(TrashOutline),
+      });
+    },
+    onClick: () => removeLocale(path),
+  });
+}
+
+function removeLocale(path: string) {
+  gettext.value.removeLocale(convertPathToCode(path));
+}
 
 let data = computed(() =>
-  [...gettext.value.locales.values()].map((locale, no) => ({ ...locale, no }))
+  [...gettext.value.modules].map((path, no) => {
+    return {
+      path,
+      no,
+      code: convertPathToCode(path),
+    };
+  })
 );
-
-const columns = createColumns({
-  remove(row: Locale) {
-    console.log(row);
-  },
-});
 </script>

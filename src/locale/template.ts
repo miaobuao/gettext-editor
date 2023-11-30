@@ -34,6 +34,7 @@ export default interface I18nTemplate {
     comment: string;
     reset: string;
     settings: string;
+    actions: string;
   };
   editor: {
     label: {

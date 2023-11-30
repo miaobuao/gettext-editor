@@ -36,6 +36,7 @@ export const en: I18nTemplate = {
     comment: 'Comment',
     reset: 'Reset',
     settings: 'Settings',
+    actions: 'Actions',
   },
   editor: {
     label: {

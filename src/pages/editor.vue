@@ -5,7 +5,7 @@
         <v-btn icon="mdi-close" @click="$router.back()"></v-btn>
       </template>
 
-      <v-app-bar-title> {{ basename(gettext.value.path) }} </v-app-bar-title>
+      <v-app-bar-title> {{ gettext.project.name }} </v-app-bar-title>
 
       <v-spacer></v-spacer>
 
@@ -41,6 +41,7 @@
                     only-icon
                     rounded
                     size="x-small"
+                    :active="item.active"
                   ></v-btn>
                 </template>
               </v-tooltip>
@@ -91,7 +92,6 @@ import { onKeyStroke } from '@vueuse/core';
 import useGettext from '../stores/gettext';
 import { useLoadingBar, useNotification } from 'naive-ui';
 import useUnsavedUpdate from '../stores/unsavedUpdate';
-import { basename } from 'path-browserify';
 
 const { t: $t } = useI18n();
 const route = useRoute();
@@ -107,7 +107,7 @@ const locales = computed(() => {
   return gettext.value.locales;
 });
 
-const drawerToolbar = [
+const drawerToolbar = computed(() => [
   {
     icon: 'mdi-plus',
     tips: $t('action.add_locale.create_from_template'),
@@ -124,8 +124,9 @@ const drawerToolbar = [
     icon: 'mdi-cog-outline',
     tips: $t('common.settings'),
     action: linkToSettings,
+    active: route.name === 'editor-settings',
   },
-];
+]);
 watch(
   () => route.query.path,
   async (path) => {
@@ -225,7 +226,7 @@ function loadPot(path: string) {
   loading.start();
   Gettext.load(path)
     .then((obj) => {
-      gettext.value = obj;
+      gettext.set(obj);
     })
     .catch((err: Error) => {
       const msg = err.message;

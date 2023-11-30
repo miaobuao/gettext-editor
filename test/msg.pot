@@ -1,10 +1,7 @@
 # TESTING FOR GETTEXT EDITOR
 # 
-#- En.po
-#- ../src-tauri/zh.po
-#- en.po
-#- ../src-tauri/en.po
 #- zh.po
+#- en.po
 #, fuzzy
 msgid ""
 msgstr ""
