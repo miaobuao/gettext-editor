@@ -17,9 +17,11 @@ export const zh: I18nTemplate = {
     reuqires_dir_instead_of_file: '需要目录而不是文件',
     file_not_found_: '文件未找到：{path}',
     file_not_found: '文件未找到',
+    file_already_exists: '文件已存在',
     failed_to_import_locale: '导入本地化文件失败',
     invalid_po_file: '无效的 PO 文件：{path}',
     field_required: '字段为必填项',
+    locale_not_found: '未找到本地化配置',
   },
   common: {
     close: '关闭',

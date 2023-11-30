@@ -20,8 +20,9 @@ import {
   gettextMsgsParser,
   msgsToLines,
   MsgMetaData,
-  convertPathToCode,
 } from './parse';
+import i18n from '../../locale';
+import { isDir } from '../invoke';
 
 export * from './parse';
 
@@ -120,16 +121,8 @@ export class Gettext {
     if (options.save) return this.saveTemplate();
   };
 
-  public readonly removeLocale = async (
-    localeCode: string,
-    options: AutoSaveOption = { save: true }
-  ) => {
-    if (!this.locales.has(localeCode)) return;
-    const { path } = this.locales.get(localeCode)!;
-    const relative = this.relativePath(path);
-    this.removeModule(relative);
+  public readonly removeLocale = async (localeCode: string) => {
     this.locales.delete(localeCode);
-    if (options.save) return this.saveTemplate();
   };
 
   public readonly untranslatedMsgStrOf = (localeCode: string) => {
@@ -321,7 +314,7 @@ export class Gettext {
     return locales;
   };
 
-  public readonly updateLocale = async (
+  public readonly updateLocaleMsgStr = async (
     code: string,
     msg: Msg,
     options: AutoSaveOption = { save: true }
@@ -334,6 +327,57 @@ export class Gettext {
       this.locales.get(code)?.msgs.push(msg);
     }
     if (options.save) return this.saveLocale(code);
+  };
+
+  public readonly updateLocale = async (
+    localeCode: string,
+    tgt: Partial<Locale>
+  ) => {
+    const locale = this.locales.get(localeCode);
+    if (isNil(locale)) {
+      throw new Error('error.locale_not_found');
+    }
+    if (tgt.path && tgt.path !== locale.path) {
+      if (await fs.exists(tgt.path)) {
+        if (await isDir(tgt.path)) {
+          const dest = join(tgt.path, basename(locale.path));
+          await fs.renameFile(locale.path, dest);
+          this.removeModule(locale.path, { save: false });
+          locale.path = dest;
+        } else {
+          throw new Error('error.file_already_exists');
+        }
+      } else {
+        await fs.renameFile(locale.path, tgt.path);
+        this.removeModule(locale.path, { save: false });
+        locale.path = tgt.path;
+      }
+      this.addModule(locale.path);
+    }
+    if (tgt.msgs) {
+      locale.msgs = tgt.msgs;
+    }
+    if (tgt.code && tgt.code !== localeCode) {
+      await this.renameLocale(localeCode, tgt.code);
+    }
+  };
+
+  public readonly renameLocale = async (srcCode: string, tgtCode: string) => {
+    const locale = this.locales.get(srcCode);
+    if (isNil(locale)) {
+      const { t } = i18n;
+      throw new Error(t('error.file_not_found'));
+    }
+    const { path } = locale;
+    const ext = extname(path);
+    const tgtPath = join(dirname(path), tgtCode + ext);
+    await fs.renameFile(path, tgtPath);
+    this.removeModule(locale.path, { save: false });
+    this.addModule(tgtPath);
+    locale.path = tgtPath;
+    locale.code = tgtCode;
+    this.locales.delete(srcCode);
+    this.locales.set(tgtCode, locale);
   };
 
   public readonly saveTemplate = () => {
@@ -423,11 +467,11 @@ export class Gettext {
     },
   });
 
-  updateMeta(value: Partial<MsgMetaData>) {
+  public readonly updateMeta = (value: Partial<MsgMetaData>) => {
     const meta = this.meta.value;
     for (const key of Object.keys(value) as (keyof MsgMetaData)[]) {
       meta[key] = value[key] as any;
     }
     this.meta.value = meta;
-  }
+  };
 }

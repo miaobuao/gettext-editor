@@ -4,7 +4,7 @@ import { en } from './lang/en';
 import { Language, currentLocale, DEFAULT_LOCALE } from './utils';
 export * from './utils';
 
-const i18n = createI18n({
+const i18nInstance = createI18n({
   legacy: false,
   locale: currentLocale.value,
   fallbackLocale: 'en',
@@ -14,12 +14,12 @@ const i18n = createI18n({
   },
 });
 
-export { i18n };
+export { i18nInstance };
 
-const locale = i18n.global;
-export default locale;
+const i18n = i18nInstance.global;
+export default i18n;
 
 export const switchLanguage = (language?: Language) => {
   currentLocale.value = language ?? DEFAULT_LOCALE;
-  i18n.global.locale = currentLocale.value;
+  i18nInstance.global.locale = currentLocale.value;
 };

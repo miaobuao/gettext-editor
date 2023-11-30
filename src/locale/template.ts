@@ -14,10 +14,12 @@ export default interface I18nTemplate {
     path_not_exist: string;
     file_not_found_: string;
     file_not_found: string;
+    file_already_exists: string;
     reuqires_dir_instead_of_file: string;
     failed_to_import_locale: string;
     invalid_po_file: string;
     field_required: string;
+    locale_not_found: string;
   };
   common: {
     close: string;

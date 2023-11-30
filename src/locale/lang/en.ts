@@ -17,9 +17,11 @@ export const en: I18nTemplate = {
     reuqires_dir_instead_of_file: 'Requires directory instead of file',
     file_not_found_: 'File not found: {path}',
     file_not_found: 'File not found',
+    file_already_exists: 'File already exists',
     failed_to_import_locale: 'Failed to import locale',
     invalid_po_file: 'Invalid PO file: {path}',
     field_required: 'Field is required',
+    locale_not_found: 'Locale not found',
   },
   common: {
     close: 'Close',

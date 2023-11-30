@@ -150,7 +150,7 @@ onKeyStroke(
       for (const [uuid, str] of unsaved) {
         const msgstr = gettext.value.findMsgStr(code, uuid);
         msgstr.str = str.split('\n');
-        gettext.value.updateLocale(code, msgstr);
+        gettext.value.updateLocaleMsgStr(code, msgstr);
         unsaved.delete(uuid);
       }
     }

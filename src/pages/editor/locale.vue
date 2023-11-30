@@ -80,7 +80,7 @@
             </n-layout>
           </n-layout-sider>
           <n-layout :native-scrollbar="false">
-            <v-card variant="flat" v-if="selectedMsg">
+            <v-card variant="flat" v-if="selectedMsg" class="w-full">
               <v-card-item>
                 <div class="flex">
                   <div class="text-overline flex-1 flex items-center">
@@ -95,10 +95,16 @@
                     {{ $t('editor.alert.confirm_delete') }}
                   </n-popconfirm>
                 </div>
-                <editable-text
-                  :value="selectedMsg.id.id"
-                  @update:value="updateSelectedMsgId"
-                ></editable-text>
+                <div>
+                  <editable-text
+                    :value="selectedMsg.id.id"
+                    @update:value="updateSelectedMsgId"
+                  >
+                    <n-button class="text-h6 whitespace-normal break-all" text>
+                      {{ selectedMsg.id.id }}
+                    </n-button>
+                  </editable-text>
+                </div>
               </v-card-item>
               <v-container>
                 <v-row>
@@ -286,9 +292,9 @@ function saveMsgStr(msgUuid: string) {
     const msg = gettext.value.findMsgStr(locale.value?.code ?? '', msgUuid);
     if (msg) {
       msg.str = value.split('\n');
-      gettext.value.updateLocale(locale.value.code, msg);
+      gettext.value.updateLocaleMsgStr(locale.value.code, msg);
     } else {
-      gettext.value.updateLocale(
+      gettext.value.updateLocaleMsgStr(
         locale.value.code,
         msgInit({
           id: msgUuid,
@@ -311,9 +317,9 @@ function onUpdateComment(msgUuid: string, value: string) {
   const commentValue = value.length === 0 ? [] : value.split('\n');
   if (msg) {
     msg.meta.comment = commentValue;
-    gettext.value.updateLocale(code, msg);
+    gettext.value.updateLocaleMsgStr(code, msg);
   } else {
-    gettext.value.updateLocale(
+    gettext.value.updateLocaleMsgStr(
       code,
       msgInit({
         id: msgUuid,

@@ -1,9 +1,11 @@
 <template>
   <n-popconfirm @positive-click="update">
     <template #trigger>
-      <n-button class="text-h6" text>
-        {{ value }}
-      </n-button>
+      <slot>
+        <n-button class="whitespace-normal break-all" text
+          >{{ value }}
+        </n-button>
+      </slot>
     </template>
     <n-input v-model:value="editing"></n-input>
   </n-popconfirm>

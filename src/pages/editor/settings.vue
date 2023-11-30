@@ -29,10 +29,12 @@
 </template>
 
 <script setup lang="ts">
+import EditableText from '../../components/EditableText.vue';
 import { convertPathToCode, type Locale } from '../../utils/gettext';
 import { NButton, NIcon, type DataTableColumns } from 'naive-ui';
 import { TrashOutline } from '@vicons/ionicons5';
 import useGettext from '../../stores/gettext';
+import { selectSingleDir } from '../../utils/file';
 const { t } = useI18n();
 const menuOptions = [['settings.modules', 'modules']].map(([label, key]) => ({
   label: t(label),
@@ -46,22 +48,41 @@ const gettext = useGettext();
 const columns = ((): DataTableColumns<Locale> => {
   return [
     {
-      title: '#',
-      key: 'no',
-      width: 60,
-      resizable: true,
-    },
-    {
       title: t('common.locale'),
       key: 'code',
       width: 80,
       resizable: true,
+      render(row) {
+        return h(EditableText, {
+          value: row.code,
+          'onUpdate:value': (code) => {
+            gettext.value.updateLocale(row.code, {
+              code,
+            });
+          },
+        });
+      },
     },
     {
       title: t('common.path'),
       key: 'path',
       width: 200,
       resizable: true,
+      render(row) {
+        return h(
+          NButton,
+          {
+            text: true,
+            class: 'whitespace-normal break-all',
+            onClick() {
+              selectDirForModule(row.code);
+            },
+          },
+          {
+            default: row.path,
+          }
+        );
+      },
     },
     {
       title: t('common.actions'),
@@ -91,13 +112,22 @@ function removeModuleBtn(path: string) {
 
 function removeLocale(path: string) {
   gettext.value.removeLocale(convertPathToCode(path));
+  gettext.value.removeModule(path);
+}
+
+async function selectDirForModule(localeCode: string) {
+  const dir = await selectSingleDir();
+  if (dir) {
+    await gettext.value.updateLocale(localeCode, {
+      path: dir,
+    });
+  }
 }
 
 let data = computed(() =>
-  [...gettext.value.modules].map((path, no) => {
+  [...gettext.value.modules].map((path) => {
     return {
       path,
-      no,
       code: convertPathToCode(path),
     };
   })
